@@ -59,9 +59,11 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
                 String name = oAuth2User.getAttributes().getOrDefault("name", "").toString();
                 String picture = oAuth2User.getAttributes().getOrDefault("picture", "").toString();
 
+                String uniqueUsername = name.replaceAll("\\s+", "").toLowerCase() + "_" + googleId.substring(0, Math.min(googleId.length(), 5));
+
                 User newUser = User.builder()
                         .email(email)
-                        .username(name)
+                        .username(uniqueUsername)
                         .password("Google Login")
                         .profilePic(picture)
                         .provider(Provider.GOOGLE)
@@ -83,9 +85,11 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
                     email = name + "@github.com";
                 }
 
+                String uniqueUsername = name.replaceAll("\\s+", "").toLowerCase() + "_" + githubId.substring(0, Math.min(githubId.length(), 5));
+
                 User newUser = User.builder()
                         .email(email)
-                        .username(name)
+                        .username(uniqueUsername)
                         .password("Github Login")
                         .profilePic(picture)
                         .provider(Provider.GITHUB)

@@ -43,12 +43,10 @@ public class JWTService {
                 .subject(user.getEmail())
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(now.plusSeconds(accessTTLSec)))
-                .claims(Map.of(
-                        "userID", user.getID(),
-                        "username", user.getActualUsername(),
-                        "role", user.getRole(),
-                        "type", "access"
-                ))
+                .claim("userID", user.getID())
+                .claim("username", user.getActualUsername())
+                .claim("role", user.getRole() != null ? user.getRole() : "USER")
+                .claim("type", "access")
                 .signWith(secretKey)
                 .compact();
     }
