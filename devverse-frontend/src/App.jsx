@@ -2,8 +2,6 @@ import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router";
 import Home from "./pages/Home";
 import Signup from "./pages/Signup";
 import ForgotPassword from "./pages/ForgotPassword";
-import ResetPassword from "./pages/ResetPassword";
-import VerifyOtp from "./pages/VerifyOtp";
 import RootLayout from "./pages/RootLayout";
 import Signin from "./pages/Signin";
 import useAuth from "./config/Store";
@@ -29,8 +27,6 @@ function App() {
           <Route path="/signin" element={<Signin />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/verify-otp" element={<VerifyOtp />} />
-          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/oauth/success" element={<OAuthSuccess />} />
 
           {/* Protected Routes: Only accessible when logged in */}

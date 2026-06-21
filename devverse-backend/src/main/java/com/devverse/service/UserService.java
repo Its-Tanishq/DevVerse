@@ -17,7 +17,9 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -26,6 +28,7 @@ public class UserService {
     private final UserRepo userRepo;
     private final ModelMapper modelMapper;
     private final PasswordEncoder passwordEncoder;
+    private final EmailService emailService;
 
     @Transactional
     public UserDTO createUser(UserDTO userDTO) {
@@ -44,10 +47,15 @@ public class UserService {
         user.setRole(Role.USER.name());
 
         User savedUser = userRepo.save(user);
+
+        Map<String, Object> variables = new HashMap<>();
+        variables.put("username", savedUser.getActualUsername());
+        emailService.sendMail(savedUser.getEmail(), "Welcome to DevVerse", "welcome-email", variables);
+
         return modelMapper.map(savedUser, UserDTO.class);
     }
 
-    public UserDTO getUserByEmail(String email) {
+    public UserDTO getUserByEmail(String email)  {
         User user = userRepo.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
         return modelMapper.map(user, UserDTO.class);
@@ -90,6 +98,14 @@ public class UserService {
         }
         
         user.setPassword(passwordEncoder.encode(request.newPassword()));
+        userRepo.save(user);
+    }
+
+    public void resetPassword(String email, String newPassword) {
+        User user = userRepo.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
+        
+        user.setPassword(passwordEncoder.encode(newPassword));
         userRepo.save(user);
     }
 

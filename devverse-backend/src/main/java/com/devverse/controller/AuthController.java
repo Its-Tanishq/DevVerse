@@ -1,14 +1,18 @@
 package com.devverse.controller;
 
+import com.devverse.dto.ForgotPasswordRequest;
 import com.devverse.dto.LoginRequest;
+import com.devverse.dto.ResetPasswordRequest;
 import com.devverse.dto.TokenResponse;
 import com.devverse.dto.UserDTO;
+import com.devverse.dto.VerifyOTPRequest;
 import com.devverse.exception.InvalidCredentialsException;
 import com.devverse.model.RefreshToken;
 import com.devverse.model.User;
 import com.devverse.repo.RefreshTokenRepo;
 import com.devverse.service.CookieService;
 import com.devverse.service.JWTService;
+import com.devverse.service.OTPService;
 import com.devverse.service.UserService;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -33,6 +37,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -47,6 +52,7 @@ public class AuthController {
     private final ModelMapper modelMapper;
     private final RefreshTokenRepo refreshTokenRepo;
     private final CookieService cookieService;
+    private final OTPService otpService;
 
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@Valid @RequestBody UserDTO userDTO) {
@@ -188,6 +194,26 @@ public class AuthController {
         }
 
         return Optional.empty();
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        otpService.generateAndSendOTP(request.email());
+        return ResponseEntity.ok(Map.of("message", "OTP sent to email"));
+    }
+
+    @PostMapping("/verify-otp")
+    public ResponseEntity<?> verifyOTP(@Valid @RequestBody VerifyOTPRequest request) {
+        otpService.verifyOTP(request.email(), request.otp());
+        return ResponseEntity.ok(Map.of("message", "OTP verified successfully"));
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        otpService.verifyOTP(request.email(), request.otp());
+        userService.resetPassword(request.email(), request.newPassword());
+        otpService.revokeOTP(request.email());
+        return ResponseEntity.ok(Map.of("message", "Password reset successfully"));
     }
 
     @PostMapping("/logout")
