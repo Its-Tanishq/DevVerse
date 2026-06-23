@@ -1,5 +1,5 @@
 import axios from "axios";
-import useAuth from "./Store";
+import useAuth from "../store/AuthStore";
 
 const apiClient = axios.create({
   baseURL: import.meta.env.BACKEND_API_URL || "http://localhost:8080/api",
@@ -57,7 +57,7 @@ apiClient.interceptors.response.use(
 
     try {
       const res = await apiClient.post("/auth/refresh-token");
-      const newToken = res.data?.accessToken;
+      const newToken = res.data?.data?.accessToken;
 
       if (!newToken) throw new Error("No access token received");
 

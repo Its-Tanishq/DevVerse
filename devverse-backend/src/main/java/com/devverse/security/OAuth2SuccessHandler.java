@@ -1,19 +1,16 @@
 package com.devverse.security;
 
-import com.devverse.dto.TokenResponse;
-import com.devverse.model.Provider;
-import com.devverse.model.RefreshToken;
-import com.devverse.model.User;
-import com.devverse.repo.RefreshTokenRepo;
-import com.devverse.repo.UserRepo;
-import com.devverse.service.CookieService;
-import com.devverse.service.JWTService;
+import com.devverse.authentication.model.Provider;
+import com.devverse.authentication.model.RefreshToken;
+import com.devverse.authentication.model.User;
+import com.devverse.authentication.repo.RefreshTokenRepo;
+import com.devverse.authentication.repo.UserRepo;
+import com.devverse.authentication.service.JWTService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;

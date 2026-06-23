@@ -1,13 +1,13 @@
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router";
 import Home from "./pages/Home";
-import Signup from "./pages/Signup";
-import ForgotPassword from "./pages/ForgotPassword";
+import Signup from "./pages/auth/Signup";
+import ForgotPassword from "./pages/auth/ForgotPassword";
 import RootLayout from "./pages/RootLayout";
-import Signin from "./pages/Signin";
-import useAuth from "./config/Store";
-import OAuthSuccess from "./pages/OAuthSuccess";
-import Dashboard from "./pages/Dashboard";
-import Profile from "./pages/Profile";
+import Signin from "./pages/auth/Signin";
+import useAuth from "./store/AuthStore";
+import OAuthSuccess from "./pages/auth/OAuthSuccess";
+import Dashboard from "./pages/dashboard/Dashboard";
+import Profile from "./pages/profile/Profile";
 
 function UserLayout() {
   const isLoggedIn = useAuth((state) => state.authStatus);

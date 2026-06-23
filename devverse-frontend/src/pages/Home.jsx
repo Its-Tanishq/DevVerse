@@ -1,6 +1,7 @@
 import React from "react";
 import { NavLink } from "react-router";
-import CountUp from "../components/CountUp";
+import CountUp from "../components/common/CountUp";
+import useAuth from "../store/AuthStore";
 import {
   Code2,
   Sparkles,
@@ -46,6 +47,8 @@ const testimonials = [
 const isProPopular = true;
 
 const Home = () => {
+  const authStatus = useAuth((state) => state.authStatus);
+
   return (
     <div className="w-full flex flex-col items-center">
       <section className="w-[90vw] max-w-7xl mx-auto flex flex-col items-center mt-6 md:mt-14 mb-20">
@@ -65,18 +68,29 @@ const Home = () => {
             learning paths, and get hired — all powered by AI.
           </p>
           <div className="flex justify-center items-center gap-4 pt-6 text-xl">
-            <NavLink
-              to="/signup"
-              className="bg-[#7c3aed] hover:bg-[#6d28d9] rounded-lg px-4 py-2 font-medium text-white transition-colors"
-            >
-              Get Started
-            </NavLink>
-            <NavLink
-              to="/signin"
-              className="bg-accent hover:bg-accent/80 rounded-lg px-4 py-2 font-medium text-foreground transition-colors"
-            >
-              Sign In
-            </NavLink>
+            {authStatus ? (
+              <NavLink
+                to="/dashboard"
+                className="bg-[#7c3aed] hover:bg-[#6d28d9] rounded-lg px-6 py-2 font-medium text-white transition-colors"
+              >
+                Go to Dashboard
+              </NavLink>
+            ) : (
+              <>
+                <NavLink
+                  to="/signup"
+                  className="bg-[#7c3aed] hover:bg-[#6d28d9] rounded-lg px-4 py-2 font-medium text-white transition-colors"
+                >
+                  Get Started
+                </NavLink>
+                <NavLink
+                  to="/signin"
+                  className="bg-accent hover:bg-accent/80 rounded-lg px-4 py-2 font-medium text-foreground transition-colors"
+                >
+                  Sign In
+                </NavLink>
+              </>
+            )}
           </div>
 
           <div className="grid grid-cols-2 md:flex justify-center items-center gap-8 md:gap-16 pt-16 w-full max-w-3xl mx-auto">
