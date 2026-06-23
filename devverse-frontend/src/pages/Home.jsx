@@ -48,7 +48,6 @@ const isProPopular = true;
 const Home = () => {
   return (
     <div className="w-full flex flex-col items-center">
-      {/* Hero Section */}
       <section className="w-[90vw] max-w-7xl mx-auto flex flex-col items-center mt-6 md:mt-14 mb-20">
         <div className="text-center">
           <div className="inline-flex items-center gap-2 bg-accent rounded-full px-4 py-1.5 text-sm font-medium text-muted-foreground">
@@ -115,7 +114,6 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Features Section */}
       <section className="w-[90vw] max-w-7xl mx-auto py-10">
         <div className="text-center mb-16">
           <div className="inline-flex bg-[#F2F1FE] text-[#7c3aed] px-3 py-1 rounded-full text-sm font-medium mb-4">
@@ -132,8 +130,11 @@ const Home = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <motion.div 
-            initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false, margin: "-50px" }} transition={{ duration: 0.5, delay: 0.0 }}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: false, margin: "-50px" }}
+            transition={{ duration: 0.5, delay: 0.0 }}
             className="bg-card border border-border p-6 rounded-2xl shadow-sm hover:-translate-y-1 hover:shadow-md transition-all duration-300"
           >
             <div className="bg-[#F2F1FE] w-10 h-10 rounded-lg flex items-center justify-center mb-4">
@@ -148,8 +149,11 @@ const Home = () => {
             </p>
           </motion.div>
 
-          <motion.div 
-            initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false, margin: "-50px" }} transition={{ duration: 0.5, delay: 0.1 }}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: false, margin: "-50px" }}
+            transition={{ duration: 0.5, delay: 0.1 }}
             className="bg-card border border-border p-6 rounded-2xl shadow-sm hover:-translate-y-1 hover:shadow-md transition-all duration-300"
           >
             <div className="bg-blue-50 dark:bg-blue-900/20 w-10 h-10 rounded-lg flex items-center justify-center mb-4">
@@ -164,8 +168,11 @@ const Home = () => {
             </p>
           </motion.div>
 
-          <motion.div 
-            initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false, margin: "-50px" }} transition={{ duration: 0.5, delay: 0.2 }}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: false, margin: "-50px" }}
+            transition={{ duration: 0.5, delay: 0.2 }}
             className="bg-card border border-border p-6 rounded-2xl shadow-sm hover:-translate-y-1 hover:shadow-md transition-all duration-300"
           >
             <div className="bg-pink-50 dark:bg-pink-900/20 w-10 h-10 rounded-lg flex items-center justify-center mb-4">
@@ -180,8 +187,11 @@ const Home = () => {
             </p>
           </motion.div>
 
-          <motion.div 
-            initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false, margin: "-50px" }} transition={{ duration: 0.5, delay: 0.3 }}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: false, margin: "-50px" }}
+            transition={{ duration: 0.5, delay: 0.3 }}
             className="bg-card border border-border p-6 rounded-2xl shadow-sm hover:-translate-y-1 hover:shadow-md transition-all duration-300"
           >
             <div className="bg-emerald-50 dark:bg-emerald-900/20 w-10 h-10 rounded-lg flex items-center justify-center mb-4">
@@ -196,8 +206,11 @@ const Home = () => {
             </p>
           </motion.div>
 
-          <motion.div 
-            initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false, margin: "-50px" }} transition={{ duration: 0.5, delay: 0.4 }}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: false, margin: "-50px" }}
+            transition={{ duration: 0.5, delay: 0.4 }}
             className="bg-card border border-border p-6 rounded-2xl shadow-sm hover:-translate-y-1 hover:shadow-md transition-all duration-300"
           >
             <div className="bg-orange-50 dark:bg-orange-900/20 w-10 h-10 rounded-lg flex items-center justify-center mb-4">
@@ -212,8 +225,11 @@ const Home = () => {
             </p>
           </motion.div>
 
-          <motion.div 
-            initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false, margin: "-50px" }} transition={{ duration: 0.5, delay: 0.5 }}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: false, margin: "-50px" }}
+            transition={{ duration: 0.5, delay: 0.5 }}
             className="bg-card border border-border p-6 rounded-2xl shadow-sm hover:-translate-y-1 hover:shadow-md transition-all duration-300"
           >
             <div className="bg-rose-50 dark:bg-rose-900/20 w-10 h-10 rounded-lg flex items-center justify-center mb-4">
@@ -230,7 +246,6 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Testimonials Section */}
       <section className="w-full py-24 overflow-hidden flex flex-col items-center">
         <div className="text-center mb-16">
           <h2 className="text-4xl font-bold text-foreground mb-4 tracking-tight">
@@ -268,7 +283,6 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Pricing Section */}
       <section className="w-[90vw] max-w-7xl mx-auto py-24">
         <div className="text-center mb-16">
           <h2 className="text-4xl font-bold text-foreground mb-4 tracking-tight">
@@ -280,9 +294,11 @@ const Home = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
-          {/* Free Tier */}
-          <motion.div 
-            initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false, margin: "-50px" }} transition={{ duration: 0.5, delay: 0.0 }}
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: false, margin: "-50px" }}
+            transition={{ duration: 0.5, delay: 0.0 }}
             className="bg-card border border-border rounded-3xl p-8 shadow-sm hover:shadow-md transition-shadow"
           >
             <h3 className="text-muted-foreground font-medium text-lg mb-2">
@@ -320,9 +336,11 @@ const Home = () => {
             </button>
           </motion.div>
 
-          {/* Pro Tier */}
           <motion.div
-            initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false, margin: "-50px" }} transition={{ duration: 0.5, delay: 0.1 }}
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: false, margin: "-50px" }}
+            transition={{ duration: 0.5, delay: 0.1 }}
             className={
               isProPopular
                 ? "bg-[#111118] border-2 border-[#7c3aed] rounded-3xl p-8 shadow-lg relative transform md:-translate-y-4"
@@ -394,9 +412,11 @@ const Home = () => {
             </button>
           </motion.div>
 
-          {/* Teams Tier */}
-          <motion.div 
-            initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false, margin: "-50px" }} transition={{ duration: 0.5, delay: 0.2 }}
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: false, margin: "-50px" }}
+            transition={{ duration: 0.5, delay: 0.2 }}
             className="bg-card border border-border rounded-3xl p-8 shadow-sm hover:shadow-md transition-shadow"
           >
             <h3 className="text-muted-foreground font-medium text-lg mb-2">

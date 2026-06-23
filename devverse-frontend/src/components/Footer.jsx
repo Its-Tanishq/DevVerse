@@ -7,7 +7,6 @@ const Footer = () => {
     <footer className="w-full border-t border-border bg-background">
       <div className="w-[90vw] max-w-7xl mx-auto py-16">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-16">
-          {/* Brand Column */}
           <div className="col-span-2 md:col-span-1">
             <NavLink to="/" className="flex items-center gap-2 mb-4">
               <div className="bg-[#7c3aed] text-white w-8 h-8 rounded-lg flex items-center justify-center font-bold text-lg">
@@ -91,7 +90,6 @@ const Footer = () => {
             </div>
           </div>
 
-          {/* Links Columns */}
           <div className="col-span-1">
             <h4 className="font-semibold text-foreground mb-4">Platform</h4>
             <ul className="space-y-3">
@@ -231,7 +229,6 @@ const Footer = () => {
           </div>
         </div>
 
-        {/* Bottom Bar */}
         <div className="pt-8 border-t border-border flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-muted-foreground text-xs">
             © 2025 DevVerse, Inc. All rights reserved.

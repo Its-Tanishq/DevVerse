@@ -15,9 +15,7 @@ const FeatureItem = ({ icon: Icon, text }) => (
 const AuthLayout = ({ children }) => {
   return (
     <div className="flex flex-1 min-h-[calc(100vh-4.5rem)] w-full bg-white dark:bg-background">
-      {/* Left Pane - Branding & Features */}
       <div className="hidden lg:flex w-[45%] flex-col justify-between bg-[#F4F7FF] dark:bg-[#111118] p-12 relative overflow-hidden">
-        {/* Abstract Background Gradient Blob */}
         <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
           <div className="absolute top-[-20%] left-[-10%] w-[70%] h-[70%] rounded-full bg-purple-200/40 dark:bg-purple-900/20 blur-[120px]" />
           <div className="absolute top-[40%] right-[-20%] w-[60%] h-[60%] rounded-full bg-blue-200/40 dark:bg-cyan-900/20 blur-[100px]" />
@@ -51,7 +49,6 @@ const AuthLayout = ({ children }) => {
         </div>
       </div>
 
-      {/* Right Pane - Dynamic Content */}
       <div className="flex-1 flex items-center justify-center p-8 sm:p-12">
         <div className="w-full max-w-100 space-y-8">
           {children}

@@ -6,6 +6,8 @@ import RootLayout from "./pages/RootLayout";
 import Signin from "./pages/Signin";
 import useAuth from "./config/Store";
 import OAuthSuccess from "./pages/OAuthSuccess";
+import Dashboard from "./pages/Dashboard";
+import Profile from "./pages/Profile";
 
 function UserLayout() {
   const isLoggedIn = useAuth((state) => state.authStatus);
@@ -31,23 +33,9 @@ function App() {
 
           {/* Protected Routes: Only accessible when logged in */}
           <Route element={<UserLayout />}>
+            <Route path="profile" element={<Profile />} />
             <Route path="/dashboard">
-              <Route
-                index
-                element={
-                  <div className="p-8 mt-20 text-center text-white">
-                    Dashboard Home
-                  </div>
-                }
-              />
-              <Route
-                path="profile"
-                element={
-                  <div className="p-8 mt-20 text-center text-white">
-                    Profile Page
-                  </div>
-                }
-              />
+              <Route index element={<Dashboard />} />
               <Route
                 path="settings"
                 element={
