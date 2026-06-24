@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   Camera,
   AtSign,
@@ -16,9 +16,117 @@ import {
   Lock,
   Eye,
   ShieldCheck,
+  User,
+  Loader2,
 } from "lucide-react";
+import useAuth from "@/store/AuthStore";
+import { supabase } from "@/config/SupabaseClient";
+import apiClient from "@/config/ApiClient";
+import toast from "react-hot-toast";
 
 const Profile = () => {
+  const [profilePic, setProfilePic] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const user = useAuth((state) => state.user);
+
+  useEffect(() => {
+    if (user?.profilePic != null) {
+      setProfilePic(user.profilePic);
+    } else {
+      setProfilePic(null);
+    }
+  }, [user]);
+
+  const handleImageChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setLoading(true);
+
+    try {
+      // 1. File unique name
+      const fileExt = file.name.split(".").pop();
+      const fileName = `${user?.username || Date.now()}.${fileExt}`;
+      const filePath = `${fileName}`;
+
+      // 2. Upload photo in supabase storage
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from("profile_photos")
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      // 3. Generate public URL after upload
+      const publicUrl =
+        supabase.storage.from("profile_photos").getPublicUrl(filePath).data
+          .publicUrl + `?t=${Date.now()}`;
+
+      setProfilePic(publicUrl);
+      // console.log("Image uploaded to supabase successful");
+      handleSaveProfile(publicUrl);
+    } catch (error) {
+      console.error("Upload error: ", error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRemovePhoto = async () => {
+    setLoading(true);
+    try {
+      if (profilePic) {
+        try {
+          const urlObj = new URL(profilePic);
+          const pathParts = urlObj.pathname.split("/");
+          const fileName = pathParts[pathParts.length - 1];
+
+          if (fileName) {
+            const { error } = await supabase.storage
+              .from("profile_photos")
+              .remove([fileName]);
+
+            if (error) {
+              console.error("Failed to delete from Supabase:", error);
+            } else {
+              // console.log("Successfully deleted from Supabase");
+            }
+          }
+        } catch (e) {
+          console.error("Error parsing profile picture URL:", e);
+        }
+      }
+
+      setProfilePic(null);
+      await handleSaveProfile(null);
+    } catch (error) {
+      console.error("Remove photo error: ", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateUser = useAuth((state) => state.updateUser);
+
+  // 4. Save data in spring boot
+  const handleSaveProfile = async (newProfilePic = profilePic) => {
+    try {
+      const res = await apiClient.patch("/profile/update-photo", {
+        profilePic: newProfilePic,
+      });
+      updateUser({ profilePic: newProfilePic });
+      toast.success("Profile updated successfully");
+    } catch (error) {
+      // console.error(error);
+      const errorMessage =
+        error.response?.data?.message ||
+        "An error occurred during update profile";
+      toast.error(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <div className="w-[90vw] max-w-7xl mx-auto pt-8 pb-12">
@@ -47,22 +155,47 @@ const Profile = () => {
               <div className="mt-8 border-t border-border pt-8 flex flex-col sm:flex-row gap-8">
                 <div className="flex flex-col items-center gap-4">
                   <div className="relative">
-                    <div className="w-24 h-24 rounded-full bg-accent overflow-hidden ring-4 ring-background shadow-sm border border-border">
-                      <img
-                        src="https://images.unsplash.com/photo-1599566150163-29194dcaad36?ixlib=rb-4.0.3&auto=format&fit=crop&w=256&q=80"
-                        alt="Profile"
-                        className="w-full h-full object-cover"
-                      />
+                    <div className="w-24 h-24 rounded-full bg-accent overflow-hidden ring-4 ring-background shadow-sm border border-border flex items-center justify-center text-foreground relative">
+                      {loading && (
+                        <div className="absolute inset-0 bg-background/50 flex items-center justify-center z-10 backdrop-blur-sm">
+                          <Loader2
+                            size={32}
+                            className="animate-spin text-[#7c3aed]"
+                          />
+                        </div>
+                      )}
+                      {profilePic ? (
+                        <img
+                          src={profilePic}
+                          alt="Profile"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <User size={48} />
+                      )}
                     </div>
                     <button className="absolute bottom-0 right-0 bg-[#7c3aed] text-white p-1.5 rounded-full hover:bg-[#6d28d9] transition-colors shadow-sm border-2 border-background">
                       <Camera size={14} />
                     </button>
                   </div>
                   <div className="flex flex-col w-full gap-2">
-                    <button className="w-full py-1.5 px-3 text-sm font-medium text-[#7c3aed] bg-[#7c3aed]/10 border border-[#7c3aed]/20 rounded-lg hover:bg-[#7c3aed]/20 transition-colors">
-                      Change photo
-                    </button>
-                    <button className="w-full py-1.5 px-3 text-sm font-medium text-muted-foreground bg-card border border-border rounded-lg hover:bg-accent transition-colors">
+                    <label
+                      className={`w-full py-1.5 px-3 text-sm font-medium text-[#7c3aed] bg-[#7c3aed]/10 border border-[#7c3aed]/20 rounded-lg transition-colors text-center block ${loading ? "opacity-50 cursor-not-allowed" : "hover:bg-[#7c3aed]/20 cursor-pointer"}`}
+                    >
+                      {loading ? "Uploading..." : "Change photo"}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleImageChange}
+                        disabled={loading}
+                      />
+                    </label>
+                    <button
+                      onClick={handleRemovePhoto}
+                      disabled={loading || !profilePic}
+                      className={`w-full py-1.5 px-3 text-sm font-medium text-muted-foreground bg-card border border-border rounded-lg transition-colors ${loading || !profilePic ? "opacity-50 cursor-not-allowed" : "hover:bg-accent"}`}
+                    >
                       Remove
                     </button>
                   </div>

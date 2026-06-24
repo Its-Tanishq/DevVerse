@@ -21,6 +21,12 @@ const useAuth = create()(
         });
       },
 
+      updateUser: (updatedFields) => {
+        set((state) => ({
+          user: { ...state.user, ...updatedFields },
+        }));
+      },
+
       login: async (loginData) => {
         // console.log("started login...");
         set({ authLoading: true });

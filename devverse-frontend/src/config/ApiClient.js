@@ -2,7 +2,7 @@ import axios from "axios";
 import useAuth from "../store/AuthStore";
 
 const apiClient = axios.create({
-  baseURL: import.meta.env.BACKEND_API_URL || "http://localhost:8080/api",
+  baseURL: import.meta.env.VITE_BACKEND_API_URL || "http://localhost:8080/api",
   headers: {
     "Content-Type": "application/json",
   },

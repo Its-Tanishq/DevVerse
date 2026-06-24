@@ -12,7 +12,7 @@ const SocialLoginButtons = () => {
           asChild
         >
           <NavLink
-            to={`${import.meta.env.BACKEND_API_URL || "http://localhost:8080"}/oauth2/authorization/github`}
+            to={`${import.meta.env.VITE_BACKEND_API_URL || "http://localhost:8080"}/oauth2/authorization/github`}
           >
             <svg
               className="mr-2 h-5 w-5"
@@ -30,7 +30,7 @@ const SocialLoginButtons = () => {
           asChild
         >
           <NavLink
-            to={`${import.meta.env.BACKEND_API_URL || "http://localhost:8080"}/oauth2/authorization/google`}
+            to={`${import.meta.env.VITE_BACKEND_API_URL || "http://localhost:8080"}/oauth2/authorization/google`}
           >
             <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
               <path
