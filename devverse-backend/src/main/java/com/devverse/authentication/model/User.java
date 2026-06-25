@@ -12,7 +12,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.Instant;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Data
 @AllArgsConstructor
@@ -41,7 +43,12 @@ public class User implements UserDetails {
 
     private String bio;
 
-    private List<Connections> connections;
+    @ElementCollection
+    @CollectionTable(name = "user_connections", joinColumns = @JoinColumn(name = "user_id"))
+    @MapKeyEnumerated(EnumType.STRING)
+    @MapKeyColumn(name = "platform")
+    @Column(name = "username")
+    private Map<Connections, String> connections = new HashMap<>();
 
     @Builder.Default
     private Integer level = 1;

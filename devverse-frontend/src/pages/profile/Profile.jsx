@@ -23,20 +23,111 @@ import useAuth from "@/store/AuthStore";
 import { supabase } from "@/config/SupabaseClient";
 import apiClient from "@/config/ApiClient";
 import toast from "react-hot-toast";
+import { getPasswordStrength, getStrengthColors } from "@/utils/passwordUtils";
 
 const Profile = () => {
   const [profilePic, setProfilePic] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const [username, setUsername] = useState("");
+  const [bio, setBio] = useState("");
+  const [passwords, setPasswords] = useState({
+    oldPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
+  const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+
+  const [connectingPlatform, setConnectingPlatform] = useState(null);
+  const [connectionUsername, setConnectionUsername] = useState("");
+
+  const handleSaveConnection = async (platform) => {
+    if (!connectionUsername.trim()) {
+      toast.error(`Please enter a username for ${platform}`);
+      return;
+    }
+
+    try {
+      if (platform.toUpperCase() === "GITHUB") {
+        try {
+          const response = await fetch(`https://api.github.com/users/${connectionUsername.trim()}`);
+          if (response.status === 404) {
+            toast.error("GitHub username does not exist");
+            return;
+          }
+          if (!response.ok) {
+            toast.error("Failed to verify GitHub username");
+            return;
+          }
+        } catch (err) {
+          toast.error("Error connecting to GitHub. Please check your internet connection.");
+          return;
+        }
+      }
+
+      const currentConnections = user.connections || {};
+      const updatedConnections = {
+        ...currentConnections,
+        [platform.toUpperCase()]: connectionUsername.trim(),
+      };
+
+      const res = await apiClient.patch("/profile/update-profile", {
+        connections: updatedConnections,
+      });
+
+      if (res.data?.data) {
+        updateUser(res.data.data);
+      }
+
+      toast.success(`${platform} connected successfully!`);
+      setConnectingPlatform(null);
+      setConnectionUsername("");
+    } catch (error) {
+      toast.error(`Failed to connect ${platform}`);
+      console.log(error);
+    }
+  };
+
+  const handleDisconnect = async (platform) => {
+    try {
+      const currentConnections = user.connections || {};
+      const updatedConnections = { ...currentConnections };
+      delete updatedConnections[platform.toUpperCase()];
+
+      const res = await apiClient.patch("/profile/update-profile", {
+        connections: updatedConnections,
+      });
+
+      if (res.data?.data) {
+        updateUser(res.data.data);
+      }
+
+      toast.success(`${platform} disconnected successfully!`);
+    } catch (error) {
+      toast.error(`Failed to disconnect ${platform}`);
+    }
+  };
+
   const user = useAuth((state) => state.user);
+  const logout = useAuth((state) => state.logout);
 
   useEffect(() => {
-    if (user?.profilePic != null) {
-      setProfilePic(user.profilePic);
-    } else {
-      setProfilePic(null);
+    if (user) {
+      if (user.profilePic != null) {
+        setProfilePic(user.profilePic);
+      } else {
+        setProfilePic(null);
+      }
+      setUsername(user.actualUsername || user.username || "");
+      setBio(user.bio || "");
     }
   }, [user]);
+
+  useEffect(() => {
+    setConnectionUsername("");
+  }, [connectingPlatform]);
 
   const handleImageChange = async (e) => {
     const file = e.target.files[0];
@@ -47,7 +138,7 @@ const Profile = () => {
     try {
       // 1. File unique name
       const fileExt = file.name.split(".").pop();
-      const fileName = `${user?.username || Date.now()}.${fileExt}`;
+      const fileName = `${user?.actualUsername || user?.username || Date.now()}.${fileExt}`;
       const filePath = `${fileName}`;
 
       // 2. Upload photo in supabase storage
@@ -127,6 +218,80 @@ const Profile = () => {
     }
   };
 
+  const handleUpdateProfile = async () => {
+    setIsUpdatingProfile(true);
+    try {
+      const res = await apiClient.patch("/profile/update-profile", {
+        username,
+        bio,
+      });
+      if (res.data?.data) {
+        updateUser(res.data.data);
+      } else {
+        updateUser({ actualUsername: username, bio });
+      }
+      toast.success("Profile updated successfully");
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.message ||
+        "An error occurred during update profile";
+      toast.error(errorMessage);
+    } finally {
+      setIsUpdatingProfile(false);
+    }
+  };
+
+  const handleChangePassword = async () => {
+    if (passwords.newPassword !== passwords.confirmPassword) {
+      toast.error("New passwords do not match");
+      return;
+    }
+    if (!passwords.oldPassword || !passwords.newPassword) {
+      toast.error("Please fill in all password fields");
+      return;
+    }
+
+    setIsChangingPassword(true);
+    try {
+      await apiClient.patch("/user/me/change-password", {
+        oldPassword: passwords.oldPassword,
+        newPassword: passwords.newPassword,
+      });
+      toast.success("Password changed successfully");
+      setPasswords({ oldPassword: "", newPassword: "", confirmPassword: "" });
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.message ||
+        "An error occurred while changing password";
+      toast.error(errorMessage);
+    } finally {
+      setIsChangingPassword(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (
+      !window.confirm(
+        "Are you sure you want to permanently delete your account? This action cannot be undone.",
+      )
+    ) {
+      return;
+    }
+
+    setIsDeletingAccount(true);
+    try {
+      await apiClient.delete("/profile");
+      toast.success("Account deleted successfully");
+      logout();
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.message ||
+        "An error occurred while deleting account";
+      toast.error(errorMessage);
+      setIsDeletingAccount(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <div className="w-[90vw] max-w-7xl mx-auto pt-8 pb-12">
@@ -202,29 +367,6 @@ const Profile = () => {
                 </div>
 
                 <div className="flex-1 space-y-5">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                    <div className="space-y-1.5">
-                      <label className="block text-sm font-medium text-[#7c3aed]">
-                        First name
-                      </label>
-                      <input
-                        type="text"
-                        defaultValue="Ethan"
-                        className="w-full px-3 py-2 bg-card border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#7c3aed]/20 focus:border-[#7c3aed] transition-colors text-sm text-foreground"
-                      />
-                    </div>
-                    <div className="space-y-1.5">
-                      <label className="block text-sm font-medium text-[#7c3aed]">
-                        Last name
-                      </label>
-                      <input
-                        type="text"
-                        defaultValue="Cole"
-                        className="w-full px-3 py-2 bg-card border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#7c3aed]/20 focus:border-[#7c3aed] transition-colors text-sm text-foreground"
-                      />
-                    </div>
-                  </div>
-
                   <div className="space-y-1.5">
                     <label className="block text-sm font-medium text-[#7c3aed]">
                       Username
@@ -235,10 +377,25 @@ const Profile = () => {
                       </div>
                       <input
                         type="text"
-                        defaultValue="@ethancole"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
                         className="w-full pl-9 pr-3 py-2 bg-card border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#7c3aed]/20 focus:border-[#7c3aed] transition-colors text-sm text-foreground"
                       />
                     </div>
+                    {username !== user.actualUsername && (
+                      <div className="flex justify-end pt-1">
+                        <button
+                          onClick={handleUpdateProfile}
+                          disabled={isUpdatingProfile}
+                          className="flex items-center gap-2 py-1.5 px-3 text-xs font-medium text-white bg-[#7c3aed] hover:bg-[#6d28d9] transition-colors shadow-sm rounded-lg disabled:opacity-50"
+                        >
+                          {isUpdatingProfile ? (
+                            <Loader2 size={14} className="animate-spin" />
+                          ) : null}
+                          Update Username
+                        </button>
+                      </div>
+                    )}
                   </div>
 
                   <div className="space-y-1.5">
@@ -251,7 +408,9 @@ const Profile = () => {
                       </div>
                       <input
                         type="email"
-                        defaultValue="ethan@devverse.io"
+                        defaultValue={user.email}
+                        placeholder="Enter your email"
+                        disabled
                         className="w-full pl-9 pr-3 py-2 bg-card border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#7c3aed]/20 focus:border-[#7c3aed] transition-colors text-sm text-foreground"
                       />
                     </div>
@@ -288,19 +447,37 @@ const Profile = () => {
                 <textarea
                   className="w-full px-4 py-3 bg-card border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#7c3aed]/20 focus:border-[#7c3aed] transition-colors text-sm text-foreground resize-none"
                   rows={3}
-                  defaultValue="Full-stack developer obsessed with clean code and fast UIs. Currently deep-diving into system design and competitive programming. Open to collab 🚀"
+                  value={bio}
+                  onChange={(e) => setBio(e.target.value)}
+                  placeholder="Tell us about yourself..."
                 />
                 <div className="flex items-center justify-between mt-2">
                   <span className="text-xs text-muted-foreground">
-                    142 / 160 characters
+                    {bio.length} / 160 characters
                   </span>
                   <div className="flex-1 max-w-[120px] h-1.5 bg-accent rounded-full ml-4 overflow-hidden">
                     <div
                       className="h-full bg-[#7c3aed] rounded-full"
-                      style={{ width: "88%" }}
+                      style={{
+                        width: `${Math.min((bio.length / 160) * 100, 100)}%`,
+                      }}
                     ></div>
                   </div>
                 </div>
+                {bio !== user.bio && (
+                  <div className="mt-6 flex justify-end">
+                    <button
+                      onClick={handleUpdateProfile}
+                      disabled={isUpdatingProfile}
+                      className="flex items-center gap-2 py-2 px-4 text-sm font-medium text-white bg-[#7c3aed] hover:bg-[#6d28d9] transition-colors shadow-sm rounded-xl disabled:opacity-50"
+                    >
+                      {isUpdatingProfile ? (
+                        <Loader2 size={16} className="animate-spin" />
+                      ) : null}
+                      Save Bio
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -315,6 +492,7 @@ const Profile = () => {
                 </p>
               </div>
               <div className="mt-6 space-y-4">
+                {/* GitHub Connection */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-accent/30 border border-border rounded-xl gap-4">
                   <div className="flex items-center gap-4">
                     <div className="p-2.5 bg-foreground text-background rounded-lg">
@@ -336,20 +514,79 @@ const Profile = () => {
                         GitHub
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        github.com/ethancole
+                        {user?.connections.GITHUB
+                          ? `github.com/${user.connections.GITHUB}`
+                          : "Not connected"}
                       </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-4">
-                    <span className="text-xs font-medium text-emerald-500 bg-emerald-500/10 px-2.5 py-1 rounded-full">
-                      Connected
-                    </span>
-                    <button className="px-4 py-1.5 text-xs font-medium text-red-500 bg-card border border-border rounded-lg hover:bg-accent transition-colors">
-                      Disconnect
-                    </button>
+                    {user?.connections.GITHUB ? (
+                      <>
+                        <span className="text-xs font-medium text-emerald-500 bg-emerald-500/10 px-2.5 py-1 rounded-full">
+                          Connected
+                        </span>
+                        <button
+                          className="px-4 py-1.5 text-xs font-medium text-red-500 bg-card border border-border rounded-lg hover:bg-accent transition-colors"
+                          onClick={() => handleDisconnect("GITHUB")}
+                        >
+                          Disconnect
+                        </button>
+                      </>
+                    ) : connectingPlatform === "GitHub" ? (
+                      <div className="flex flex-col gap-2 items-end">
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            placeholder="e.g. torvalds"
+                            className="w-40 px-3 py-1.5 text-xs bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7c3aed]/20 focus:border-[#7c3aed] transition-colors text-foreground"
+                            value={connectionUsername}
+                            onChange={(e) =>
+                              setConnectionUsername(e.target.value)
+                            }
+                            onKeyDown={(e) => {
+                              if (e.key === "Escape") {
+                                setConnectingPlatform(null);
+                              }
+                            }}
+                          />
+                          <button
+                            className="px-3 py-1.5 text-xs font-medium text-white bg-[#7c3aed] rounded-lg hover:bg-[#6d28d9]"
+                            onClick={() => handleSaveConnection("GitHub")}
+                          >
+                            Save
+                          </button>
+                          <button
+                            className="px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent rounded-lg"
+                            onClick={() => {
+                              setConnectingPlatform(null);
+                              setConnectionUsername("");
+                            }}
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                        <span className="text-[10px] text-muted-foreground mr-auto">
+                          Enter your GitHub profile username
+                        </span>
+                      </div>
+                    ) : (
+                      <>
+                        <span className="text-xs font-medium text-muted-foreground">
+                          Not connected
+                        </span>
+                        <button
+                          className="px-4 py-1.5 text-xs font-medium text-[#7c3aed] bg-card border border-border rounded-lg hover:bg-accent transition-colors"
+                          onClick={() => setConnectingPlatform("GitHub")}
+                        >
+                          Connect
+                        </button>
+                      </>
+                    )}
                   </div>
                 </div>
 
+                {/* LinkedIn Connection */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-accent/30 border border-border rounded-xl gap-4">
                   <div className="flex items-center gap-4">
                     <div className="p-2.5 bg-[#0A66C2] text-white rounded-lg">
@@ -373,56 +610,75 @@ const Profile = () => {
                         LinkedIn
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        Not connected
+                        {user?.connections.LINKEDIN
+                          ? `linkedin.com/in/${user.connections.LINKEDIN}`
+                          : "Not connected"}
                       </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-4">
-                    <span className="text-xs font-medium text-muted-foreground">
-                      Not connected
-                    </span>
-                    <button className="px-4 py-1.5 text-xs font-medium text-[#7c3aed] bg-card border border-border rounded-lg hover:bg-accent transition-colors">
-                      Connect
-                    </button>
-                  </div>
-                </div>
-
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-accent/30 border border-border rounded-xl gap-4">
-                  <div className="flex items-center gap-4">
-                    <div className="p-2.5 bg-card text-[#4285F4] border border-border rounded-lg shadow-sm">
-                      <svg
-                        width="20"
-                        height="20"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <circle cx="12" cy="12" r="10"></circle>
-                        <circle cx="12" cy="12" r="4"></circle>
-                        <line x1="21.17" y1="8" x2="12" y2="8"></line>
-                        <line x1="3.95" y1="6.06" x2="8.54" y2="14"></line>
-                        <line x1="10.88" y1="21.94" x2="15.46" y2="14"></line>
-                      </svg>
-                    </div>
-                    <div>
-                      <p className="text-sm font-bold text-foreground">
-                        Google
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        ethan@gmail.com
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <span className="text-xs font-medium text-emerald-500 bg-emerald-500/10 px-2.5 py-1 rounded-full">
-                      Connected
-                    </span>
-                    <button className="px-4 py-1.5 text-xs font-medium text-red-500 bg-card border border-border rounded-lg hover:bg-accent transition-colors">
-                      Disconnect
-                    </button>
+                    {user?.connections.LINKEDIN ? (
+                      <>
+                        <span className="text-xs font-medium text-emerald-500 bg-emerald-500/10 px-2.5 py-1 rounded-full">
+                          Connected
+                        </span>
+                        <button
+                          className="px-4 py-1.5 text-xs font-medium text-red-500 bg-card border border-border rounded-lg hover:bg-accent transition-colors"
+                          onClick={() => handleDisconnect("LINKEDIN")}
+                        >
+                          Disconnect
+                        </button>
+                      </>
+                    ) : connectingPlatform === "LinkedIn" ? (
+                      <div className="flex flex-col gap-2 items-end">
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            placeholder="e.g. williamhgates"
+                            className="w-40 px-3 py-1.5 text-xs bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7c3aed]/20 focus:border-[#7c3aed] transition-colors text-foreground"
+                            value={connectionUsername}
+                            onChange={(e) =>
+                              setConnectionUsername(e.target.value)
+                            }
+                            onKeyDown={(e) => {
+                              if (e.key === "Escape") {
+                                setConnectingPlatform(null);
+                              }
+                            }}
+                          />
+                          <button
+                            className="px-3 py-1.5 text-xs font-medium text-white bg-[#7c3aed] rounded-lg hover:bg-[#6d28d9]"
+                            onClick={() => handleSaveConnection("LinkedIn")}
+                          >
+                            Save
+                          </button>
+                          <button
+                            className="px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent rounded-lg"
+                            onClick={() => {
+                              setConnectingPlatform(null);
+                              setConnectionUsername("");
+                            }}
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                        <span className="text-[10px] text-muted-foreground mr-auto">
+                          Enter your LinkedIn profile username
+                        </span>
+                      </div>
+                    ) : (
+                      <>
+                        <span className="text-xs font-medium text-muted-foreground">
+                          Not connected
+                        </span>
+                        <button
+                          className="px-4 py-1.5 text-xs font-medium text-[#7c3aed] bg-card border border-border rounded-lg hover:bg-accent transition-colors"
+                          onClick={() => setConnectingPlatform("LinkedIn")}
+                        >
+                          Connect
+                        </button>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>
@@ -448,7 +704,14 @@ const Profile = () => {
                     </div>
                     <input
                       type="password"
-                      defaultValue="••••••••••••"
+                      value={passwords.oldPassword}
+                      onChange={(e) =>
+                        setPasswords({
+                          ...passwords,
+                          oldPassword: e.target.value,
+                        })
+                      }
+                      placeholder="••••••••••••"
                       className="w-full pl-9 pr-10 py-2 bg-card border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#7c3aed]/20 focus:border-[#7c3aed] transition-colors text-sm text-foreground"
                     />
                     <div className="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer text-muted-foreground hover:text-foreground">
@@ -467,7 +730,14 @@ const Profile = () => {
                     </div>
                     <input
                       type="password"
-                      defaultValue="••••••••••••"
+                      value={passwords.newPassword}
+                      onChange={(e) =>
+                        setPasswords({
+                          ...passwords,
+                          newPassword: e.target.value,
+                        })
+                      }
+                      placeholder="••••••••••••"
                       className="w-full pl-9 pr-10 py-2 bg-card border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#7c3aed]/20 focus:border-[#7c3aed] transition-colors text-sm text-foreground"
                     />
                     <div className="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer text-muted-foreground hover:text-foreground">
@@ -486,7 +756,14 @@ const Profile = () => {
                     </div>
                     <input
                       type="password"
-                      defaultValue="••••••••••••"
+                      value={passwords.confirmPassword}
+                      onChange={(e) =>
+                        setPasswords({
+                          ...passwords,
+                          confirmPassword: e.target.value,
+                        })
+                      }
+                      placeholder="••••••••••••"
                       className="w-full pl-9 pr-10 py-2 bg-card border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#7c3aed]/20 focus:border-[#7c3aed] transition-colors text-sm text-foreground"
                     />
                     <div className="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer text-muted-foreground hover:text-foreground">
@@ -496,15 +773,26 @@ const Profile = () => {
                 </div>
 
                 <div className="flex gap-2 py-2">
-                  <div className="h-1.5 flex-1 bg-orange-400 rounded-full"></div>
-                  <div className="h-1.5 flex-1 bg-yellow-400 rounded-full"></div>
-                  <div className="h-1.5 flex-1 bg-emerald-400 rounded-full"></div>
-                  <div className="h-1.5 flex-1 bg-emerald-400 rounded-full"></div>
-                  <div className="h-1.5 flex-1 bg-accent rounded-full"></div>
+                  {getStrengthColors(
+                    getPasswordStrength(passwords.newPassword),
+                  ).map((color, idx) => (
+                    <div
+                      key={idx}
+                      className={`h-1.5 flex-1 rounded-full transition-colors duration-300 ${color}`}
+                    ></div>
+                  ))}
                 </div>
 
-                <button className="w-full mt-2 flex items-center justify-center gap-2 py-2.5 px-4 text-sm font-medium text-white bg-[#7c3aed] hover:bg-[#6d28d9] transition-colors shadow-sm rounded-xl">
-                  <ShieldCheck size={18} />
+                <button
+                  onClick={handleChangePassword}
+                  disabled={isChangingPassword}
+                  className="w-full mt-2 flex items-center justify-center gap-2 py-2.5 px-4 text-sm font-medium text-white bg-[#7c3aed] hover:bg-[#6d28d9] transition-colors shadow-sm rounded-xl disabled:opacity-50"
+                >
+                  {isChangingPassword ? (
+                    <Loader2 size={18} className="animate-spin" />
+                  ) : (
+                    <ShieldCheck size={18} />
+                  )}
                   Update password
                 </button>
               </div>
@@ -579,9 +867,7 @@ const Profile = () => {
                     <GitCommit size={18} />
                   </div>
                   <div>
-                    <p className="text-sm font-bold text-foreground">
-                      248 this Q
-                    </p>
+                    <p className="text-sm font-bold text-foreground">248</p>
                     <p className="text-xs text-muted-foreground">
                       Contributions
                     </p>
@@ -590,7 +876,9 @@ const Profile = () => {
               </div>
             </div>
 
-            <div className="bg-card rounded-2xl border border-border shadow-sm p-6">
+            {/* TODO: Enable Notification and Preference tab infuture */}
+
+            {/* <div className="bg-card rounded-2xl border border-border shadow-sm p-6">
               <div className="mb-6">
                 <h2 className="text-base font-bold text-foreground">
                   Preferences
@@ -709,7 +997,7 @@ const Profile = () => {
                   </div>
                 </div>
               </div>
-            </div>
+            </div> */}
 
             <div className="bg-red-500/5 rounded-2xl border border-red-500/20 shadow-sm overflow-hidden">
               <div className="p-5 border-b border-red-500/10">
@@ -717,7 +1005,8 @@ const Profile = () => {
               </div>
 
               <div className="bg-background/50 divide-y divide-red-500/10">
-                <div className="flex items-center justify-between p-5">
+                {/* TODO: Make it in future */}
+                {/* <div className="flex items-center justify-between p-5">
                   <div>
                     <h3 className="text-sm font-bold text-foreground">
                       Export my data
@@ -729,7 +1018,7 @@ const Profile = () => {
                   <button className="px-4 py-1.5 text-xs font-medium text-[#7c3aed] bg-card border border-[#7c3aed]/20 rounded-lg hover:bg-accent transition-colors whitespace-nowrap">
                     Export
                   </button>
-                </div>
+                </div> */}
 
                 <div className="flex items-center justify-between p-5">
                   <div>
@@ -740,7 +1029,14 @@ const Profile = () => {
                       Permanently delete your account and all data
                     </p>
                   </div>
-                  <button className="px-4 py-1.5 text-xs font-medium text-red-500 bg-red-500/10 border border-red-500/20 rounded-lg hover:bg-red-500/20 transition-colors whitespace-nowrap">
+                  <button
+                    onClick={handleDeleteAccount}
+                    disabled={isDeletingAccount}
+                    className="px-4 py-1.5 text-xs font-medium text-red-500 bg-red-500/10 border border-red-500/20 rounded-lg hover:bg-red-500/20 transition-colors whitespace-nowrap disabled:opacity-50 flex items-center gap-2"
+                  >
+                    {isDeletingAccount && (
+                      <Loader2 size={12} className="animate-spin" />
+                    )}
                     Delete
                   </button>
                 </div>

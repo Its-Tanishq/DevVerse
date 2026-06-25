@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -27,13 +28,15 @@ public class UserDTO {
     @NotBlank(message = "Username is required")
     private String username;
 
+    private String actualUsername;
+
     @NotBlank(message = "Password is required")
     @Size(min = 6, max = 30, message = "Password must be between 6 and 30 characters")
     private String password;
 
     private String profilePic;
     private String bio;
-    private List<Connections> connections;
+    private Map<Connections, String> connections;
     private Integer level = 1;
     private Integer xpPoint = 0;
     private Integer streak = 0;
