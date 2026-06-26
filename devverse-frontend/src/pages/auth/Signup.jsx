@@ -15,19 +15,20 @@ import {
   Loader2,
 } from "lucide-react";
 import AuthLayout from "@/components/authenticaton/AuthLayout";
-import apiClient from "@/config/ApiClient";
+import useAuth from "@/store/AuthStore";
 import toast from "react-hot-toast";
 import SocialLoginButtons from "@/components/authenticaton/SocialLoginButtons";
-import { getPasswordStrength, getStrengthText, getStrengthColor, getTextColor } from "@/utils/passwordUtils";
+import {
+  getPasswordStrength,
+  getStrengthText,
+  getStrengthColor,
+  getTextColor,
+} from "@/utils/passwordUtils";
 
 const Signup = () => {
   const [showPassword, setShowPassword] = useState(false);
-
-  const [email, setEmail] = useState("");
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [loading, setLoading] = useState(false);
+  const signup = useAuth((state) => state.signup);
+  const loading = useAuth((state) => state.authLoading);
 
   const [data, setData] = useState({
     email: "",
@@ -38,19 +39,16 @@ const Signup = () => {
   const navigate = useNavigate();
 
   const handleSignup = async () => {
-    setLoading(true);
-
     try {
-      const res = await apiClient.post("/auth/register", data);
+      await signup(data);
       toast.success("Account created successfully!");
-      navigate("/signin"); // TODO: Change it to that new UI of register menu where he can put profile pic, conenctions etc
+      navigate("/dashboard");
     } catch (error) {
       // console.error(error);
       const errorMessage =
         error.response?.data?.message || "An error occurred during signup";
       toast.error(errorMessage);
     } finally {
-      setLoading(false);
       setData({
         email: "",
         username: "",

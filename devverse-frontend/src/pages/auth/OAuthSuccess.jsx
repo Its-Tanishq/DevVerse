@@ -27,7 +27,7 @@ const OAuthSuccess = () => {
           );
 
           toast.success("Login success !");
-          navigate("/"); // TODO: Change it when dashboard created, matching Signin.jsx
+          navigate("/dashboard");
         } catch (error) {
           toast.error("Error while login!");
           console.log(error);

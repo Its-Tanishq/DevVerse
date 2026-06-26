@@ -61,6 +61,36 @@ const useAuth = create()(
         }
       },
 
+      signup: async (signupData) => {
+        set({ authLoading: true });
+
+        try {
+          const response = await apiClient.post("/auth/register", signupData);
+          const signupResponseData = response.data.data;
+
+          let userPayload = signupResponseData.userDTO || signupResponseData.user;
+          if (userPayload) {
+            const { password, ...rest } = userPayload;
+            userPayload = rest;
+          }
+
+          set({
+            accessToken:
+              signupResponseData.accessToken || signupResponseData.token,
+            user: userPayload,
+            authStatus: true,
+          });
+
+          return signupResponseData;
+        } catch (error) {
+          throw error;
+        } finally {
+          set({
+            authLoading: false,
+          });
+        }
+      },
+
       logout: async (silent = false) => {
         try {
           set({

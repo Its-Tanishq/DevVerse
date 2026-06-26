@@ -24,7 +24,7 @@ const Signin = () => {
   const handleSignin = async () => {
     try {
       await login(data);
-      navigate("/"); // TODO: Change it when dashboard created
+      navigate("/dashboard");
     } catch (error) {
       // console.error(error);
       const errorMessage =

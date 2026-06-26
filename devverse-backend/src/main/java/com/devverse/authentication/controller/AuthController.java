@@ -38,7 +38,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.time.Instant;
 import java.util.Arrays;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -56,8 +55,30 @@ public class AuthController {
     private final OTPService otpService;
 
     @PostMapping("/register")
-    public ResponseEntity<ApiResponse<?>> registerUser(@Valid @RequestBody UserDTO userDTO) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResponse<>(true, "User registered successfully", userService.registerUser(userDTO), Instant.now()));
+    public ResponseEntity<ApiResponse<?>> registerUser(@Valid @RequestBody UserDTO userDTO, HttpServletResponse response) {
+        UserDTO registeredUser = userService.registerUser(userDTO);
+        User user = modelMapper.map(registeredUser, User.class);
+
+        String jti = UUID.randomUUID().toString();
+        var refreshTokenDB = RefreshToken.builder()
+                .jti(jti)
+                .user(user)
+                .createdAt(Instant.now())
+                .expiresAt(Instant.now().plusSeconds(jwtService.getRefreshTTLSec()))
+                .revoked(false)
+                .build();
+
+        refreshTokenRepo.save(refreshTokenDB);
+
+        String accessToken = jwtService.generateAccessToken(user);
+        String refreshToken = jwtService.generateRefreshToken(user, refreshTokenDB.getJti());
+
+        cookieService.attachRefreshCookie(response, refreshToken, (int) jwtService.getRefreshTTLSec());
+        cookieService.addNoStoreHeaders(response);
+
+        TokenResponse tokenResponse = TokenResponse.of(accessToken, refreshToken, jwtService.getAccessTTLSec(), registeredUser);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResponse<>(true, "User registered successfully", tokenResponse, Instant.now()));
     }
 
     @PostMapping("/login")

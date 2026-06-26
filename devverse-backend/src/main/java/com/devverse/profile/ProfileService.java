@@ -4,7 +4,6 @@ import com.devverse.authentication.dto.UserDTO;
 import com.devverse.authentication.model.User;
 import com.devverse.authentication.repo.UserRepo;
 import com.devverse.authentication.service.UserService;
-import com.devverse.exception.DuplicateResourceException;
 import com.devverse.exception.ResourceNotFoundException;
 import com.devverse.profile.dto.ProfilePhotoUpdateRequest;
 import com.devverse.profile.dto.ProfileUpdateRequest;
@@ -13,7 +12,6 @@ import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 
 @Service

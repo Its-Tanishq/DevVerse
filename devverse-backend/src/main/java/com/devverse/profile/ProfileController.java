@@ -1,7 +1,6 @@
 package com.devverse.profile;
 
 
-import com.devverse.authentication.dto.ChangePasswordRequest;
 import com.devverse.authentication.service.UserService;
 import com.devverse.common.ApiResponse;
 import com.devverse.profile.dto.ProfilePhotoUpdateRequest;
@@ -32,7 +31,6 @@ public class ProfileController {
     public ResponseEntity<ApiResponse<?>> deleteProfile() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         profileService.deleteUser(auth.getName());
-        // TODO: Logout is not done here
         return ResponseEntity.ok(new ApiResponse<>(true, "Profile Deleted Successfully", null, Instant.now()));
     }
 
