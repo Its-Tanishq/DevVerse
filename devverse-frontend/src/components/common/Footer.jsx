@@ -95,7 +95,7 @@ const Footer = () => {
             <ul className="space-y-3">
               <li>
                 <NavLink
-                  to="/problems"
+                  to="/problemset"
                   className="nav-link text-muted-foreground text-sm hover:text-foreground"
                 >
                   Problems

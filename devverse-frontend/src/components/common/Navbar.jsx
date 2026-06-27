@@ -69,7 +69,7 @@ const Navbar = () => {
               Dashboard
             </NavLink>
           )}
-          <NavLink to="/problems" className="nav-link hover:text-foreground">
+          <NavLink to="/problemset" className="nav-link hover:text-foreground">
             Problems
           </NavLink>
           <NavLink to="/contests" className="nav-link hover:text-foreground">
@@ -287,7 +287,7 @@ const Navbar = () => {
             </NavLink>
           )}
           <NavLink
-            to="/problems"
+            to="/problemset"
             onClick={closeMobileMenu}
             className="font-medium text-foreground py-2 border-b border-border"
           >
