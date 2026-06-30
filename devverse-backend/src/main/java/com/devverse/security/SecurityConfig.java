@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -23,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 
 @Configuration
+@EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
 
     @Autowired
@@ -60,7 +62,22 @@ public class SecurityConfig {
                     );
                     var objectMapper = new ObjectMapper();
                     response.getWriter().write(objectMapper.writeValueAsString(errorMap));
-                })))
+                }))
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            response.setStatus(403);
+                            response.setContentType("application/json");
+                            String message = "Access denied! " + accessDeniedException.getMessage();
+                            Object errorAttr = request.getAttribute("error");
+                            if (errorAttr != null) {
+                                message = errorAttr.toString();
+                            }
+                            Map<String, Object> errorMap = Map.of(
+                                    "message", message,
+                                    "status", 403
+                            );
+                            var objectMapper = new ObjectMapper();
+                            response.getWriter().write(objectMapper.writeValueAsString(errorMap));
+                        }))
                 .addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class)
                 .httpBasic(Customizer.withDefaults());
 

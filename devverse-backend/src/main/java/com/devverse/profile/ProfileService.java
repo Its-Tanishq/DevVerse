@@ -61,6 +61,7 @@ public class ProfileService {
         return modelMapper.map(updatedUser, UserDTO.class);
     }
 
+    @Transactional
     public void deleteUser(String email) {
         User user = userRepo.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));

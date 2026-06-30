@@ -9,7 +9,7 @@ import jakarta.validation.constraints.NotBlank;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class CompaniesDTO {
+public class CompanyDTO {
     private Long ID;
 
     @NotBlank(message = "Name cannot be blank")

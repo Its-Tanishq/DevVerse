@@ -31,5 +31,6 @@ public class ProblemsDTO {
     private String hints;
 
     private boolean isPremium;
-    private List<CompaniesDTO> companies;
+    private List<CompanyDTO> companies;
+    private List<TagsDTO> tags;
 }

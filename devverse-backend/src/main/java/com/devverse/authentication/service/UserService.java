@@ -109,6 +109,7 @@ public class UserService {
         userRepo.save(user);
     }
 
+    @Transactional
     public void deleteUser(Long id) {
         User user = userRepo.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));

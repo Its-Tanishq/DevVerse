@@ -6,7 +6,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Data
+import java.util.List;
+
+ @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
@@ -42,5 +44,13 @@ public class Problems {
             joinColumns = @JoinColumn(name = "problems_id"),
             inverseJoinColumns = @JoinColumn(name = "companies_id")
     )
-    private List<Companies> companies;
+    private List<Company> companies;
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "problem_tags",
+            joinColumns = @JoinColumn(name = "problems_id"),
+            inverseJoinColumns = @JoinColumn(name = "tags_id")
+    )
+    private List<Tags> tags;
 }

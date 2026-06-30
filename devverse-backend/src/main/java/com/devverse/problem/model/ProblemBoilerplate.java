@@ -11,8 +11,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 @Entity
-@Table(name = "problemcodeboilerplate")
-public class ProblemCodeBoilerplate {
+@Table(name = "problem_boilerplate")
+public class ProblemBoilerplate {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

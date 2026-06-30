@@ -1,0 +1,95 @@
+package com.devverse.problem.service;
+
+import com.devverse.problem.dto.TagsDTO;
+import com.devverse.problem.repo.ProblemsRepo;
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import com.devverse.problem.repo.TagsRepo;
+import com.devverse.problem.model.Tags;
+import com.devverse.problem.model.Problems;
+import org.modelmapper.ModelMapper;
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Service
+@RequiredArgsConstructor
+public class TagsService {
+
+    private final TagsRepo tagsRepo;
+    private final ProblemsRepo problemsRepo;
+    private final ModelMapper modelMapper;
+    
+    @Transactional
+    public TagsDTO createTag(TagsDTO tagsDTO) {
+        if (tagsRepo.findByName(tagsDTO.getName()).isPresent()) {
+            throw new IllegalArgumentException("Tag with name " + tagsDTO.getName() + " already exists");
+        }
+        Tags tag = modelMapper.map(tagsDTO, Tags.class);
+        Tags savedTag = tagsRepo.save(tag);
+        return modelMapper.map(savedTag, TagsDTO.class);
+    }
+
+    @Transactional
+    public TagsDTO updateTag(TagsDTO tagsDTO) {
+        Tags tag = tagsRepo.findById(tagsDTO.getID())
+                .orElseThrow(() -> new IllegalArgumentException("Tag with id " + tagsDTO.getID() + " not found"));
+        
+        tag.setName(tagsDTO.getName());
+        Tags updatedTag = tagsRepo.save(tag);
+        return modelMapper.map(updatedTag, TagsDTO.class);
+    }
+
+    @Transactional
+    public void deleteTag(Long id) {
+        Tags tag = tagsRepo.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Tag with id " + id + " not found"));
+        
+        List<Problems> problems = problemsRepo.findByTags(tag);
+        for (Problems problem : problems) {
+            problem.getTags().remove(tag);
+            problemsRepo.save(problem);
+        }
+
+        tagsRepo.delete(tag);
+    }
+
+    @Transactional
+    public void updateProblemTag(Long problemId, Long tagId) {
+        Problems problem = problemsRepo.findById(problemId)
+                .orElseThrow(() -> new IllegalArgumentException("Problem with id " + problemId + " not found"));
+        Tags tag = tagsRepo.findById(tagId)
+                .orElseThrow(() -> new IllegalArgumentException("Tag with id " + tagId + " not found"));
+
+        if (!problem.getTags().contains(tag)) {
+            problem.getTags().add(tag);
+            problemsRepo.save(problem);
+        }
+    }
+
+    @Transactional
+    public void deleteProblemTag(Long problemId, Long tagId) {
+        Problems problem = problemsRepo.findById(problemId)
+                .orElseThrow(() -> new IllegalArgumentException("Problem with id " + problemId + " not found"));
+        Tags tag = tagsRepo.findById(tagId)
+                .orElseThrow(() -> new IllegalArgumentException("Tag with id " + tagId + " not found"));
+
+        if (problem.getTags().contains(tag)) {
+            problem.getTags().remove(tag);
+            problemsRepo.save(problem);
+        }
+    }
+
+    public List<TagsDTO> getAllTags() {
+        return tagsRepo.findAll().stream()
+                .map(tag -> modelMapper.map(tag, TagsDTO.class))
+                .collect(Collectors.toList());
+    }
+
+    public TagsDTO getTagById(Long id) {
+        Tags tag = tagsRepo.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Tag with id " + id + " not found"));
+        return modelMapper.map(tag, TagsDTO.class);
+    }
+}
