@@ -7,13 +7,15 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.Instant;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
 @Entity
-@Table(name = "user_problem_workspace")
-public class UserProblemWorkspace {
+@Table(name = "discussions")
+public class Discussion {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,14 +25,25 @@ public class UserProblemWorkspace {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "problems_id", nullable = false)
     private Problem problems;
 
-    @Builder.Default
-    private boolean isBookmark = false;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_id")
+    private Discussion parentDiscussion;
 
-    @Column(columnDefinition = "TEXT")
-    private String notes;
+    @Column(nullable = false, columnDefinition = "TEXT")
+    private String content;
+
+    @Builder.Default
+    private boolean isEditorial = false;
+
+    @Column(nullable = false)
+    private Instant createdAt;
+
+    @PrePersist
+    protected void onCreate() {
+        if (createdAt == null) createdAt = Instant.now();
+    }
 }

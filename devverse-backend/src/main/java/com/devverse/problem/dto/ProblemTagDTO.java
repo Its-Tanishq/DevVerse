@@ -9,7 +9,7 @@ import jakarta.validation.constraints.NotNull;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class ProblemsTagsDTO {
+public class ProblemTagDTO {
     private Long ID;
 
     @NotNull(message = "Problem ID cannot be null")

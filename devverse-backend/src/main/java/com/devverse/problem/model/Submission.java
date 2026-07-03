@@ -14,8 +14,8 @@ import java.time.Instant;
 @NoArgsConstructor
 @Builder
 @Entity
-@Table(name = "discussions")
-public class Discussions {
+@Table(name = "submissions")
+public class Submission {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,17 +27,24 @@ public class Discussions {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "problems_id", nullable = false)
-    private Problems problems;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "parent_id")
-    private Discussions parentDiscussion;
+    private Problem problems;
 
     @Column(nullable = false, columnDefinition = "TEXT")
-    private String content;
+    private String code;
 
-    @Builder.Default
-    private boolean isEditorial = false;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Language language;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private SubmissionStatus status;
+
+    @Column(nullable = false)
+    private Integer executionTimeMs;
+
+    @Column(nullable = false)
+    private Integer memoryUsedKb;
 
     @Column(nullable = false)
     private Instant createdAt;

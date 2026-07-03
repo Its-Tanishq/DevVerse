@@ -14,7 +14,7 @@ import java.util.List;
 @Builder
 @Entity
 @Table(name = "problems")
-public class Problems {
+public class Problem {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -52,5 +52,5 @@ public class Problems {
             joinColumns = @JoinColumn(name = "problems_id"),
             inverseJoinColumns = @JoinColumn(name = "tags_id")
     )
-    private List<Tags> tags;
+    private List<Tag> tags;
 }

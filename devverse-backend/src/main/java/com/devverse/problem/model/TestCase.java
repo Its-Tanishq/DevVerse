@@ -6,16 +6,13 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.Instant;
-import java.time.LocalDate;
-
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
 @Entity
-@Table(name = "daily_challenges")
-public class DailyChallenges {
+@Table(name = "test_cases")
+public class TestCase {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,16 +20,14 @@ public class DailyChallenges {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "problems_id", nullable = false)
-    private Problems problems;
+    private Problem problems;
 
-    @Column(nullable = false)
-    private LocalDate date;
+    @Column(nullable = false, columnDefinition = "TEXT")
+    private String input;
 
-    @Column(nullable = false)
-    private Instant createdAt;
+    @Column(nullable = false, columnDefinition = "TEXT")
+    private String output;
 
-    @PrePersist
-    protected void onCreate() {
-        if (createdAt == null) createdAt = Instant.now();
-    }
+    @Builder.Default
+    private boolean isHidden = true;
 }

@@ -20,7 +20,7 @@ public class ProblemBoilerplate {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "problems_id", nullable = false)
-    private Problems problems;
+    private Problem problems;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

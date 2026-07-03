@@ -2,14 +2,14 @@ package com.devverse.problem.service;
 
 import com.devverse.problem.dto.ProblemBoilerplateDTO;
 import com.devverse.problem.repo.ProblemBoilerplateRepo;
-import com.devverse.problem.repo.ProblemsRepo;
+import com.devverse.problem.repo.ProblemRepo;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import com.devverse.problem.model.ProblemBoilerplate;
-import com.devverse.problem.model.Problems;
+import com.devverse.problem.model.Problem;
 import com.devverse.problem.model.Language;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -19,12 +19,12 @@ import java.util.stream.Collectors;
 public class ProblemBoilerplateService {
 
     private final ProblemBoilerplateRepo problemBoilerplateRepo;
-    private final ProblemsRepo problemsRepo;
+    private final ProblemRepo problemsRepo;
     private final ModelMapper modelMapper;
 
     @Transactional
     public ProblemBoilerplateDTO createProblemBoilerplate(ProblemBoilerplateDTO dto) {
-        Problems problem = problemsRepo.findById(dto.getProblemsId())
+        Problem problem = problemsRepo.findById(dto.getProblemsId())
                 .orElseThrow(() -> new IllegalArgumentException("Problem with id " + dto.getProblemsId() + " not found"));
 
         if (problemBoilerplateRepo.findByProblemsAndLanguage(problem, dto.getLanguage()).isPresent()) {
@@ -47,7 +47,7 @@ public class ProblemBoilerplateService {
         boilerplate.setBoilerplate(dto.getBoilerplate());
         
         if (!boilerplate.getProblems().getID().equals(dto.getProblemsId())) {
-            Problems problem = problemsRepo.findById(dto.getProblemsId())
+            Problem problem = problemsRepo.findById(dto.getProblemsId())
                     .orElseThrow(() -> new IllegalArgumentException("Problem with id " + dto.getProblemsId() + " not found"));
             boilerplate.setProblems(problem);
         }
@@ -64,7 +64,7 @@ public class ProblemBoilerplateService {
     }
 
     public List<ProblemBoilerplateDTO> getBoilerplatesByProblemId(Long problemId) {
-        Problems problem = problemsRepo.findById(problemId)
+        Problem problem = problemsRepo.findById(problemId)
                 .orElseThrow(() -> new IllegalArgumentException("Problem with id " + problemId + " not found"));
         
         return problemBoilerplateRepo.findByProblems(problem).stream()
@@ -73,7 +73,7 @@ public class ProblemBoilerplateService {
     }
 
     public ProblemBoilerplateDTO getBoilerplateByProblemIdAndLanguage(Long problemId, Language language) {
-        Problems problem = problemsRepo.findById(problemId)
+        Problem problem = problemsRepo.findById(problemId)
                 .orElseThrow(() -> new IllegalArgumentException("Problem with id " + problemId + " not found"));
         
         ProblemBoilerplate boilerplate = problemBoilerplateRepo.findByProblemsAndLanguage(problem, language)

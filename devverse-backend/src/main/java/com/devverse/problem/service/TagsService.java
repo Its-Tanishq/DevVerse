@@ -1,14 +1,14 @@
 package com.devverse.problem.service;
 
 import com.devverse.problem.dto.TagsDTO;
-import com.devverse.problem.repo.ProblemsRepo;
+import com.devverse.problem.repo.ProblemRepo;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import com.devverse.problem.repo.TagsRepo;
-import com.devverse.problem.model.Tags;
-import com.devverse.problem.model.Problems;
+import com.devverse.problem.repo.TagRepo;
+import com.devverse.problem.model.Tag;
+import com.devverse.problem.model.Problem;
 import org.modelmapper.ModelMapper;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -17,8 +17,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class TagsService {
 
-    private final TagsRepo tagsRepo;
-    private final ProblemsRepo problemsRepo;
+    private final TagRepo tagsRepo;
+    private final ProblemRepo problemsRepo;
     private final ModelMapper modelMapper;
     
     @Transactional
@@ -26,28 +26,28 @@ public class TagsService {
         if (tagsRepo.findByName(tagsDTO.getName()).isPresent()) {
             throw new IllegalArgumentException("Tag with name " + tagsDTO.getName() + " already exists");
         }
-        Tags tag = modelMapper.map(tagsDTO, Tags.class);
-        Tags savedTag = tagsRepo.save(tag);
+        Tag tag = modelMapper.map(tagsDTO, Tag.class);
+        Tag savedTag = tagsRepo.save(tag);
         return modelMapper.map(savedTag, TagsDTO.class);
     }
 
     @Transactional
     public TagsDTO updateTag(TagsDTO tagsDTO) {
-        Tags tag = tagsRepo.findById(tagsDTO.getID())
+        Tag tag = tagsRepo.findById(tagsDTO.getID())
                 .orElseThrow(() -> new IllegalArgumentException("Tag with id " + tagsDTO.getID() + " not found"));
         
         tag.setName(tagsDTO.getName());
-        Tags updatedTag = tagsRepo.save(tag);
+        Tag updatedTag = tagsRepo.save(tag);
         return modelMapper.map(updatedTag, TagsDTO.class);
     }
 
     @Transactional
     public void deleteTag(Long id) {
-        Tags tag = tagsRepo.findById(id)
+        Tag tag = tagsRepo.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Tag with id " + id + " not found"));
         
-        List<Problems> problems = problemsRepo.findByTags(tag);
-        for (Problems problem : problems) {
+        List<Problem> problems = problemsRepo.findByTags(tag);
+        for (Problem problem : problems) {
             problem.getTags().remove(tag);
             problemsRepo.save(problem);
         }
@@ -57,9 +57,9 @@ public class TagsService {
 
     @Transactional
     public void updateProblemTag(Long problemId, Long tagId) {
-        Problems problem = problemsRepo.findById(problemId)
+        Problem problem = problemsRepo.findById(problemId)
                 .orElseThrow(() -> new IllegalArgumentException("Problem with id " + problemId + " not found"));
-        Tags tag = tagsRepo.findById(tagId)
+        Tag tag = tagsRepo.findById(tagId)
                 .orElseThrow(() -> new IllegalArgumentException("Tag with id " + tagId + " not found"));
 
         if (!problem.getTags().contains(tag)) {
@@ -70,9 +70,9 @@ public class TagsService {
 
     @Transactional
     public void deleteProblemTag(Long problemId, Long tagId) {
-        Problems problem = problemsRepo.findById(problemId)
+        Problem problem = problemsRepo.findById(problemId)
                 .orElseThrow(() -> new IllegalArgumentException("Problem with id " + problemId + " not found"));
-        Tags tag = tagsRepo.findById(tagId)
+        Tag tag = tagsRepo.findById(tagId)
                 .orElseThrow(() -> new IllegalArgumentException("Tag with id " + tagId + " not found"));
 
         if (problem.getTags().contains(tag)) {
@@ -88,7 +88,7 @@ public class TagsService {
     }
 
     public TagsDTO getTagById(Long id) {
-        Tags tag = tagsRepo.findById(id)
+        Tag tag = tagsRepo.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Tag with id " + id + " not found"));
         return modelMapper.map(tag, TagsDTO.class);
     }

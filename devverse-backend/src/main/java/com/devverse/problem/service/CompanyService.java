@@ -1,17 +1,17 @@
 package com.devverse.problem.service;
 
 import com.devverse.problem.dto.CompanyDTO;
-import com.devverse.problem.repo.CompaniesRepo;
+import com.devverse.problem.repo.CompanyRepo;
 
 import com.devverse.problem.dto.CompanyDTO;
-import com.devverse.problem.repo.CompaniesRepo;
-import com.devverse.problem.repo.ProblemsRepo;
+import com.devverse.problem.repo.CompanyRepo;
+import com.devverse.problem.repo.ProblemRepo;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import com.devverse.problem.model.Company;
-import com.devverse.problem.model.Problems;
+import com.devverse.problem.model.Problem;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -19,8 +19,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class CompanyService {
 
-    private final CompaniesRepo companiesRepo;
-    private final ProblemsRepo problemsRepo;
+    private final CompanyRepo companiesRepo;
+    private final ProblemRepo problemsRepo;
     private final ModelMapper modelMapper;
 
     @Transactional
@@ -47,8 +47,8 @@ public class CompanyService {
         Company company = companiesRepo.findById(companyId)
                 .orElseThrow(() -> new IllegalArgumentException("Company not found"));
         
-        List<Problems> problems = problemsRepo.findByCompanies(company);
-        for (Problems problem : problems) {
+        List<Problem> problems = problemsRepo.findByCompanies(company);
+        for (Problem problem : problems) {
             problem.getCompanies().remove(company);
             problemsRepo.save(problem);
         }
@@ -58,7 +58,7 @@ public class CompanyService {
 
     @Transactional
     public void updateProblemCompany(Long problemId, Long companyId) {
-        Problems problem = problemsRepo.findById(problemId)
+        Problem problem = problemsRepo.findById(problemId)
                 .orElseThrow(() -> new IllegalArgumentException("Problem not found"));
         Company company = companiesRepo.findById(companyId)
                 .orElseThrow(() -> new IllegalArgumentException("Company not found"));
@@ -71,7 +71,7 @@ public class CompanyService {
 
     @Transactional
     public void deleteProblemCompany(Long problemId, Long companyId) {
-        Problems problem = problemsRepo.findById(problemId)
+        Problem problem = problemsRepo.findById(problemId)
                 .orElseThrow(() -> new IllegalArgumentException("Problem not found"));
         Company company = companiesRepo.findById(companyId)
                 .orElseThrow(() -> new IllegalArgumentException("Company not found"));

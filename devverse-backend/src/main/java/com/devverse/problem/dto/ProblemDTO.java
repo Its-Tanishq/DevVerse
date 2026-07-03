@@ -12,7 +12,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class ProblemsDTO {
+public class ProblemDTO {
     private Long ID;
 
     @NotBlank(message = "Title cannot be blank")

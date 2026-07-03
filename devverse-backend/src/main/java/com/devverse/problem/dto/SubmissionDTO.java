@@ -13,7 +13,7 @@ import jakarta.validation.constraints.NotNull;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class SubmissionsDTO {
+public class SubmissionDTO {
     private Long ID;
 
     @NotNull(message = "User ID cannot be null")
