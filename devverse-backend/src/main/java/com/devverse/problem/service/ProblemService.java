@@ -44,15 +44,15 @@ public class ProblemService {
     }
 
     @Transactional
-    public ProblemDTO updateProblem(ProblemDTO problemsDTO) {
-        Problem problem = problemsRepo.findById(problemsDTO.getID())
-                .orElseThrow(() -> new IllegalArgumentException("Problem with id " + problemsDTO.getID() + " not found"));
+    public ProblemDTO updateProblem(Long id, ProblemDTO problemsDTO) {
+        Problem problem = problemsRepo.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Problem with id " + id + " not found"));
 
-        problem.setTitle(problemsDTO.getTitle());
-        problem.setDescription(problemsDTO.getDescription());
-        problem.setDifficulty(problemsDTO.getDifficulty());
-        problem.setHints(problemsDTO.getHints());
-        problem.setPremium(problemsDTO.isPremium());
+        if (problemsDTO.getTitle() != null) problem.setTitle(problemsDTO.getTitle());
+        if (problemsDTO.getDescription() != null) problem.setDescription(problemsDTO.getDescription());
+        if (problemsDTO.getDifficulty() != null) problem.setDifficulty(problemsDTO.getDifficulty());
+        if (problemsDTO.getHints() != null) problem.setHints(problemsDTO.getHints());
+        if (problemsDTO.getIsPremium() != null) problem.setPremium(Boolean.TRUE.equals(problemsDTO.getIsPremium()));
 
         if (problemsDTO.getCompanies() != null && !problemsDTO.getCompanies().isEmpty()) {
             problem.setCompanies(problemsDTO.getCompanies().stream()

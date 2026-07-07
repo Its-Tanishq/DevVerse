@@ -34,10 +34,17 @@ public class CompanyService {
     }
 
     @Transactional
-    public CompanyDTO updateCompany(CompanyDTO companyDTO) {
-        Company company = companiesRepo.findById(companyDTO.getID())
+    public CompanyDTO updateCompany(Long id, CompanyDTO companyDTO) {
+        Company company = companiesRepo.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Company not found"));
-        company.setName(companyDTO.getName());
+
+        if (companyDTO.getName() != null) {
+            if (!company.getName().equals(companyDTO.getName()) && companiesRepo.findByName(companyDTO.getName()).isPresent()) {
+                throw new IllegalArgumentException("Company already exists");
+            }
+            company.setName(companyDTO.getName());
+        }
+
         company = companiesRepo.save(company);
         return modelMapper.map(company, CompanyDTO.class);
     }

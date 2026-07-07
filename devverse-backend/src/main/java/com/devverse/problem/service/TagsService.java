@@ -32,11 +32,13 @@ public class TagsService {
     }
 
     @Transactional
-    public TagsDTO updateTag(TagsDTO tagsDTO) {
-        Tag tag = tagsRepo.findById(tagsDTO.getID())
-                .orElseThrow(() -> new IllegalArgumentException("Tag with id " + tagsDTO.getID() + " not found"));
+    public TagsDTO updateTag(Long id, TagsDTO tagsDTO) {
+        Tag tag = tagsRepo.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Tag with id " + id + " not found"));
         
-        tag.setName(tagsDTO.getName());
+        if (tagsDTO.getName() != null) {
+            tag.setName(tagsDTO.getName());
+        }
         Tag updatedTag = tagsRepo.save(tag);
         return modelMapper.map(updatedTag, TagsDTO.class);
     }

@@ -43,11 +43,15 @@ public class DailyChallengeService {
         DailyChallenge existing = dailyChallengeRepo.findById(dailyChallengeId)
                 .orElseThrow(() -> new ResourceNotFoundException("DailyChallenge not found with id: " + dailyChallengeId));
 
-        Problem problem = problemsRepo.findById(dailyChallengeDTO.getProblemsId())
-                .orElseThrow(() -> new ResourceNotFoundException("Problem not found with id: " + dailyChallengeDTO.getProblemsId()));
-
-        existing.setProblems(problem);
-        existing.setDate(dailyChallengeDTO.getDate());
+        if (dailyChallengeDTO.getProblemsId() != null) {
+            Problem problem = problemsRepo.findById(dailyChallengeDTO.getProblemsId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Problem not found with id: " + dailyChallengeDTO.getProblemsId()));
+            existing.setProblems(problem);
+        }
+        
+        if (dailyChallengeDTO.getDate() != null) {
+            existing.setDate(dailyChallengeDTO.getDate());
+        }
 
         DailyChallenge updated = dailyChallengeRepo.save(existing);
         return modelMapper.map(updated, DailyChallengeDTO.class);

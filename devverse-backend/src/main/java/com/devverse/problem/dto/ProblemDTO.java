@@ -30,7 +30,7 @@ public class ProblemDTO {
     @NotBlank(message = "Hints cannot be blank")
     private String hints;
 
-    private boolean isPremium;
+    private Boolean isPremium;
     private List<CompanyDTO> companies;
     private List<TagsDTO> tags;
 }
