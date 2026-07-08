@@ -39,13 +39,23 @@ public class TestCaseService {
         TestCase existing = testCasesRepo.findById(testCaseId)
                 .orElseThrow(() -> new ResourceNotFoundException("TestCase not found with id: " + testCaseId));
 
-        Problem problem = problemsRepo.findById(testCaseDTO.getProblemsId())
-                .orElseThrow(() -> new ResourceNotFoundException("Problem not found with id: " + testCaseDTO.getProblemsId()));
+        if (testCaseDTO.getProblemsId() != null) {
+            Problem problem = problemsRepo.findById(testCaseDTO.getProblemsId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Problem not found with id: " + testCaseDTO.getProblemsId()));
+            existing.setProblems(problem);
+        }
 
-        existing.setProblems(problem);
-        existing.setInput(testCaseDTO.getInput());
-        existing.setOutput(testCaseDTO.getOutput());
-        existing.setHidden(testCaseDTO.isHidden());
+        if (testCaseDTO.getInput() != null) {
+            existing.setInput(testCaseDTO.getInput());
+        }
+        
+        if (testCaseDTO.getOutput() != null) {
+            existing.setOutput(testCaseDTO.getOutput());
+        }
+        
+        if (testCaseDTO.getIsHidden() != null) {
+            existing.setIsHidden(testCaseDTO.getIsHidden());
+        }
 
         TestCase updated = testCasesRepo.save(existing);
         return modelMapper.map(updated, TestCaseDTO.class);

@@ -22,5 +22,5 @@ public class TestCaseDTO {
     @NotBlank(message = "Output cannot be blank")
     private String output;
 
-    private boolean isHidden;
+    private Boolean isHidden;
 }

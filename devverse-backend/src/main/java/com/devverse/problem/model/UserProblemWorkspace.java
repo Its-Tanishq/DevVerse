@@ -29,7 +29,7 @@ public class UserProblemWorkspace {
     private Problem problems;
 
     @Builder.Default
-    private boolean isBookmark = false;
+    private Boolean isBookmark = false;
 
     @Column(columnDefinition = "TEXT")
     private String notes;

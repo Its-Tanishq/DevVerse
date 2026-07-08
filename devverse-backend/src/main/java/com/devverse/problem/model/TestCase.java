@@ -29,5 +29,5 @@ public class TestCase {
     private String output;
 
     @Builder.Default
-    private boolean isHidden = true;
+    private Boolean isHidden = true;
 }

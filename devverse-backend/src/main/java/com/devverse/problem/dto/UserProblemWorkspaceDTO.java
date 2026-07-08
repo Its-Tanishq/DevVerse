@@ -18,6 +18,6 @@ public class UserProblemWorkspaceDTO {
     @NotNull(message = "Problem ID cannot be null")
     private Long problemsId;
 
-    private boolean isBookmark;
+    private Boolean isBookmark;
     private String notes;
 }

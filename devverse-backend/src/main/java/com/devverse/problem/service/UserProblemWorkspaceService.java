@@ -39,7 +39,7 @@ public class UserProblemWorkspaceService {
         UserProblemWorkspace workspace;
         if (existingOpt.isPresent()) {
             workspace = existingOpt.get();
-            workspace.setBookmark(dto.isBookmark());
+            workspace.setIsBookmark(dto.getIsBookmark());
             workspace.setNotes(dto.getNotes());
         } else {
             workspace = modelMapper.map(dto, UserProblemWorkspace.class);
@@ -89,7 +89,7 @@ public class UserProblemWorkspaceService {
         List<UserProblemWorkspace> workspaces = workspaceRepo.findByUser(user);
 
         return workspaces.stream()
-                .filter(UserProblemWorkspace::isBookmark)
+                .filter(UserProblemWorkspace::getIsBookmark)
                 .map(ws -> modelMapper.map(ws, UserProblemWorkspaceDTO.class))
                 .collect(Collectors.toList());
     }

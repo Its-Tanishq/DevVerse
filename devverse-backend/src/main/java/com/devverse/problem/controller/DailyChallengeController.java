@@ -15,7 +15,7 @@ import java.time.LocalDate;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/problem/dc") // TODO: Check it
+@RequestMapping("/api/problem/dc")
 public class DailyChallengeController {
 
     private final DailyChallengeService dailyChallengeService;

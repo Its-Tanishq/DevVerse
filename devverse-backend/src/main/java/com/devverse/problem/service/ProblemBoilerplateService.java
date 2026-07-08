@@ -39,14 +39,19 @@ public class ProblemBoilerplateService {
     }
 
     @Transactional
-    public ProblemBoilerplateDTO updateProblemBoilerplate(ProblemBoilerplateDTO dto) {
-        ProblemBoilerplate boilerplate = problemBoilerplateRepo.findById(dto.getID())
-                .orElseThrow(() -> new IllegalArgumentException("Boilerplate not found with id " + dto.getID()));
+    public ProblemBoilerplateDTO updateProblemBoilerplate(Long id, ProblemBoilerplateDTO dto) {
+        ProblemBoilerplate boilerplate = problemBoilerplateRepo.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Boilerplate not found with id " + id));
         
-        boilerplate.setLanguage(dto.getLanguage());
-        boilerplate.setBoilerplate(dto.getBoilerplate());
+        if (dto.getLanguage() != null) {
+            boilerplate.setLanguage(dto.getLanguage());
+        }
         
-        if (!boilerplate.getProblems().getID().equals(dto.getProblemsId())) {
+        if (dto.getBoilerplate() != null) {
+            boilerplate.setBoilerplate(dto.getBoilerplate());
+        }
+        
+        if (dto.getProblemsId() != null && !boilerplate.getProblems().getID().equals(dto.getProblemsId())) {
             Problem problem = problemsRepo.findById(dto.getProblemsId())
                     .orElseThrow(() -> new IllegalArgumentException("Problem with id " + dto.getProblemsId() + " not found"));
             boilerplate.setProblems(problem);
