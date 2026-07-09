@@ -87,10 +87,35 @@ public class DiscussionService {
         discussionsRepo.delete(discussion);
     }
 
+    public DiscussionDTO likeDiscussion(Long discussionId, Long userId) {
+        Discussion discussion = discussionsRepo.findById(discussionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Discussion not found with id: " + discussionId));
+        User user = userRepo.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
+
+        discussion.getLikedByUsers().add(user);
+        Discussion saved = discussionsRepo.save(discussion);
+        return mapToDTO(saved);
+    }
+
+    public DiscussionDTO unlikeDiscussion(Long discussionId, Long userId) {
+        Discussion discussion = discussionsRepo.findById(discussionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Discussion not found with id: " + discussionId));
+        User user = userRepo.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
+
+        discussion.getLikedByUsers().remove(user);
+        Discussion saved = discussionsRepo.save(discussion);
+        return mapToDTO(saved);
+    }
+
     private DiscussionDTO mapToDTO(Discussion discussion) {
         DiscussionDTO dto = modelMapper.map(discussion, DiscussionDTO.class);
         if (discussion.getParentDiscussion() != null) {
             dto.setParentId(discussion.getParentDiscussion().getID());
+        }
+        if (discussion.getLikedByUsers() != null) {
+            dto.setLikeCount(discussion.getLikedByUsers().size());
         }
         return dto;
     }

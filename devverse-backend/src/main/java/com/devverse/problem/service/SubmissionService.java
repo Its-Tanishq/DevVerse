@@ -13,7 +13,12 @@ import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Set;
+import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.stream.Collectors;
+import com.devverse.problem.dto.UserProblemStatusDTO;
+import com.devverse.problem.model.SubmissionStatus;
 
 @Service
 @RequiredArgsConstructor
@@ -71,5 +76,28 @@ public class SubmissionService {
         Submission submission = submissionsRepo.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Submission not found with id: " + id));
         submissionsRepo.delete(submission);
+    }
+
+    public UserProblemStatusDTO getUserProblemStatus(Long userId) {
+        User user = userRepo.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
+
+        List<Submission> userSubmissions = submissionsRepo.findByUser(user);
+
+        Set<Long> solvedIds = new HashSet<>();
+        Set<Long> attemptedIds = new HashSet<>();
+
+        userSubmissions.forEach(sub -> {
+            Long probId = sub.getProblems().getID();
+            if (sub.getStatus() == SubmissionStatus.ACCEPTED) {
+                solvedIds.add(probId);
+            } else {
+                attemptedIds.add(probId);
+            }
+        });
+
+        attemptedIds.removeAll(solvedIds);
+
+        return new UserProblemStatusDTO(new ArrayList<>(solvedIds), new ArrayList<>(attemptedIds));
     }
 }

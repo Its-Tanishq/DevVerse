@@ -8,6 +8,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.Instant;
+import java.util.HashSet;
+import java.util.Set;
 
 @Data
 @AllArgsConstructor
@@ -41,6 +43,15 @@ public class Discussion {
 
     @Column(nullable = false)
     private Instant createdAt;
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "discussion_likes",
+            joinColumns = @JoinColumn(name = "discussion_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id")
+    )
+    @Builder.Default
+    private Set<User> likedByUsers = new HashSet<>();
 
     @PrePersist
     protected void onCreate() {

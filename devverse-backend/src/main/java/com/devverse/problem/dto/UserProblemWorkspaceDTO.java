@@ -12,7 +12,6 @@ import jakarta.validation.constraints.NotNull;
 public class UserProblemWorkspaceDTO {
     private Long ID;
 
-    @NotNull(message = "User ID cannot be null")
     private Long userId;
 
     @NotNull(message = "Problem ID cannot be null")

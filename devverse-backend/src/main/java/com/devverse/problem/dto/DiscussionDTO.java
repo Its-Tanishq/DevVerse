@@ -14,7 +14,6 @@ import jakarta.validation.constraints.NotNull;
 public class DiscussionDTO {
     private Long ID;
 
-    @NotNull(message = "User ID cannot be null")
     private Long userId;
 
     @NotNull(message = "Problem ID cannot be null")
@@ -25,6 +24,7 @@ public class DiscussionDTO {
     @NotBlank(message = "Content cannot be blank")
     private String content;
 
-    private boolean isEditorial;
+    private Boolean isEditorial;
+    private Integer likeCount;
     private Instant createdAt;
 }

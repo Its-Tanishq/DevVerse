@@ -12,6 +12,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import com.devverse.problem.model.Company;
 import com.devverse.problem.model.Tag;
+import com.devverse.problem.model.Difficulty;
 
 import java.util.stream.Collectors;
 
@@ -77,8 +78,8 @@ public class ProblemService {
         problemsRepo.delete(problem);
     }
 
-    public PageResponse<ProblemDTO> getProblems(int page, int size) {
-        Page<ProblemDTO> problemsPage = problemsRepo.findAll(PageRequest.of(page, size))
+    public PageResponse<ProblemDTO> getProblems(Difficulty difficulty, String tag, String company, String status, int page, int size) {
+        Page<ProblemDTO> problemsPage = problemsRepo.findFilteredProblems(difficulty, tag, company, PageRequest.of(page, size))
                 .map(p -> modelMapper.map(p, ProblemDTO.class));
 
         return new PageResponse<>(

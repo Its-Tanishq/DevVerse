@@ -20,6 +20,11 @@ public class DailyChallengeController {
 
     private final DailyChallengeService dailyChallengeService;
 
+    @GetMapping("/today")
+    public ResponseEntity<ApiResponse<?>> getTodayDailyChallenge() {
+        return ResponseEntity.ok(new ApiResponse<>(true, "Today's daily challenge fetched successfully", dailyChallengeService.getDailyChallengeByDate(LocalDate.now()), Instant.now()));
+    }
+
     @PostMapping
     public ResponseEntity<ApiResponse<?>> createDailyChallenge(@Valid @RequestBody DailyChallengeDTO dailyChallengeDTO) {
         return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResponse<>(true, "Daily challenge created successfully", dailyChallengeService.createDailyChallenge(dailyChallengeDTO), Instant.now()));

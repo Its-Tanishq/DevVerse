@@ -4,7 +4,11 @@ package com.devverse.problem.controller;
 import com.devverse.common.ApiResponse;
 import com.devverse.problem.dto.DiscussionDTO;
 import com.devverse.problem.service.DiscussionService;
+import com.devverse.authentication.service.UserService;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,9 +22,13 @@ import java.time.Instant;
 public class DiscussionController {
 
     private final DiscussionService discussionService;
+    private final UserService userService;
 
     @PostMapping
     public ResponseEntity<ApiResponse<?>> createDiscussion(@Valid @RequestBody DiscussionDTO dto) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        Long userId = userService.getUserByEmail(auth.getName()).getID();
+        dto.setUserId(userId);
         return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResponse<>(true, "Discussion created successfully", discussionService.createDiscussion(dto), Instant.now()));
     }
 
@@ -53,5 +61,19 @@ public class DiscussionController {
     public ResponseEntity<ApiResponse<?>> deleteDiscussion(@PathVariable Long id) {
         discussionService.deleteDiscussion(id);
         return ResponseEntity.ok(new ApiResponse<>(true, "Discussion deleted successfully", null, Instant.now()));
+    }
+
+    @PostMapping("/{id}/like")
+    public ResponseEntity<ApiResponse<?>> likeDiscussion(@PathVariable Long id) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        Long userId = userService.getUserByEmail(auth.getName()).getID();
+        return ResponseEntity.ok(new ApiResponse<>(true, "Discussion liked successfully", discussionService.likeDiscussion(id, userId), Instant.now()));
+    }
+
+    @DeleteMapping("/{id}/like")
+    public ResponseEntity<ApiResponse<?>> unlikeDiscussion(@PathVariable Long id) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        Long userId = userService.getUserByEmail(auth.getName()).getID();
+        return ResponseEntity.ok(new ApiResponse<>(true, "Discussion unliked successfully", discussionService.unlikeDiscussion(id, userId), Instant.now()));
     }
 }
