@@ -14,6 +14,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 public interface ProblemRepo extends JpaRepository<Problem, Long> {
+    long countByDifficulty(Difficulty difficulty);
     Optional<Problem> findBySlug(String slug);
     List<Problem> findByDifficulty(Difficulty difficulty);
     List<Problem> findByCompanies(Company company);
@@ -25,10 +26,16 @@ public interface ProblemRepo extends JpaRepository<Problem, Long> {
            "LEFT JOIN p.companies c " +
            "WHERE (:difficulty IS NULL OR p.difficulty = :difficulty) " +
            "AND (:tag IS NULL OR t.name = :tag) " +
-           "AND (:company IS NULL OR c.name = :company)")
+           "AND (:company IS NULL OR c.name = :company) " +
+           "AND (:status IS NULL OR :userId IS NULL OR " +
+           "(:status = 'solved' AND EXISTS (SELECT 1 FROM Submission s WHERE s.problems = p AND s.user.ID = :userId AND s.status = 'ACCEPTED')) OR " +
+           "(:status = 'attempted' AND EXISTS (SELECT 1 FROM Submission s WHERE s.problems = p AND s.user.ID = :userId AND s.status != 'ACCEPTED')) OR " +
+           "(:status = 'unsolved' AND NOT EXISTS (SELECT 1 FROM Submission s WHERE s.problems = p AND s.user.ID = :userId)))")
     Page<Problem> findFilteredProblems(
             @Param("difficulty") Difficulty difficulty,
             @Param("tag") String tag,
             @Param("company") String company,
+            @Param("status") String status,
+            @Param("userId") Long userId,
             Pageable pageable);
 }

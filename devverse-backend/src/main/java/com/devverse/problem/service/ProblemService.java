@@ -15,6 +15,12 @@ import com.devverse.problem.model.Tag;
 import com.devverse.problem.model.Difficulty;
 
 import java.util.stream.Collectors;
+import java.util.Map;
+import java.util.HashMap;
+import com.devverse.problem.dto.UserProblemStatusDTO;
+import com.devverse.problem.dto.UserProblemWorkspaceDTO;
+import java.util.Set;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -22,6 +28,8 @@ public class ProblemService {
 
     private final ProblemRepo problemsRepo;
     private final ModelMapper modelMapper;
+    private final SubmissionService submissionService;
+    private final UserProblemWorkspaceService workspaceService;
 
     @Transactional
     public ProblemDTO createProblem(ProblemDTO problemsDTO) {
@@ -78,9 +86,26 @@ public class ProblemService {
         problemsRepo.delete(problem);
     }
 
-    public PageResponse<ProblemDTO> getProblems(Difficulty difficulty, String tag, String company, String status, int page, int size) {
-        Page<ProblemDTO> problemsPage = problemsRepo.findFilteredProblems(difficulty, tag, company, PageRequest.of(page, size))
+    public PageResponse<ProblemDTO> getProblems(Difficulty difficulty, String tag, String company, String status, Long userId, int page, int size) {
+        Page<ProblemDTO> problemsPage = problemsRepo.findFilteredProblems(difficulty, tag, company, status, userId, PageRequest.of(page, size))
                 .map(p -> modelMapper.map(p, ProblemDTO.class));
+        
+        if (userId != null) {
+            UserProblemStatusDTO userStatus = submissionService.getUserProblemStatus(userId);
+            List<UserProblemWorkspaceDTO> bookmarkedWorkspaces = workspaceService.getBookmarkedWorkspaces(userId);
+            Set<Long> bookmarkedIds = bookmarkedWorkspaces.stream().map(UserProblemWorkspaceDTO::getProblemsId).collect(Collectors.toSet());
+
+            problemsPage.getContent().forEach(p -> {
+                if (userStatus.getSolvedProblemIds() != null && userStatus.getSolvedProblemIds().contains(p.getID())) {
+                    p.setStatus("solved");
+                } else if (userStatus.getAttemptedProblemIds() != null && userStatus.getAttemptedProblemIds().contains(p.getID())) {
+                    p.setStatus("attempted");
+                } else {
+                    p.setStatus("unsolved");
+                }
+                p.setBookmarked(bookmarkedIds.contains(p.getID()));
+            });
+        }
 
         return new PageResponse<>(
                 problemsPage.getContent(),
@@ -101,5 +126,13 @@ public class ProblemService {
         Problem problem = problemsRepo.findBySlug(slug)
                 .orElseThrow(() -> new IllegalArgumentException("Problem with slug " + slug + " not found"));
         return modelMapper.map(problem, ProblemDTO.class);
+    }
+
+    public Map<String, Long> getProblemCountsByDifficulty() {
+        Map<String, Long> counts = new HashMap<>();
+        counts.put("easy", problemsRepo.countByDifficulty(Difficulty.EASY));
+        counts.put("medium", problemsRepo.countByDifficulty(Difficulty.MEDIUM));
+        counts.put("hard", problemsRepo.countByDifficulty(Difficulty.HARD));
+        return counts;
     }
 }

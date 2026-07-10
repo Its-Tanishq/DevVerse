@@ -33,4 +33,6 @@ public class ProblemDTO {
     private Boolean isPremium;
     private List<CompanyDTO> companies;
     private List<TagsDTO> tags;
+    private String status;
+    private Boolean bookmarked;
 }

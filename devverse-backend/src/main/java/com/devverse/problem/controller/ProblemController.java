@@ -48,7 +48,10 @@ public class ProblemController {
             @RequestParam(required = false) String status,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(new ApiResponse<>(true, "Problems fetched successfully", problemService.getProblems(difficulty, tag, company, status, page, size), Instant.now()));
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        Long userId = userService.getUserByEmail(auth.getName()).getID();
+        return ResponseEntity.ok(new ApiResponse<>(true, "Problems fetched successfully", problemService.getProblems(difficulty, tag, company, status, userId, page, size), Instant.now()));
     }
 
     @GetMapping("/{identifier}")
@@ -65,5 +68,10 @@ public class ProblemController {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         Long userId = userService.getUserByEmail(auth.getName()).getID();
         return ResponseEntity.ok(new ApiResponse<>(true, "User problem status fetched successfully", submissionService.getUserProblemStatus(userId), Instant.now()));
+    }
+
+    @GetMapping("/count")
+    public ResponseEntity<ApiResponse<?>> getProblemCounts() {
+        return ResponseEntity.ok(new ApiResponse<>(true, "Problem counts fetched successfully", problemService.getProblemCountsByDifficulty(), Instant.now()));
     }
 }
