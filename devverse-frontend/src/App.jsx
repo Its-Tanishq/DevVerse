@@ -33,7 +33,7 @@ function App() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/oauth/success" element={<OAuthSuccess />} />
           <Route path="/problemset" element={<Problemset />} />
-          <Route path="/problemset/info" element={<ProblemInfo />} />
+          <Route path="/problem/:identifier" element={<ProblemInfo />} />
 
           {/* Protected Routes: Only accessible when logged in */}
           <Route element={<UserLayout />}>

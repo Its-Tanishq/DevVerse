@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router";
 import apiClient from "../../config/ApiClient";
 import useAuth from "../../store/AuthStore";
 import {
@@ -58,6 +59,7 @@ const SectionHeading = ({ title, badge }) => (
 );
 
 const Problem = () => {
+  const navigate = useNavigate();
   const authStatus = useAuth((state) => state.authStatus);
   const [problemsData, setProblemsData] = useState([]);
   const [dailyChallenge, setDailyChallenge] = useState(undefined); // undefined = loading, null = not found/error
@@ -191,6 +193,22 @@ const Problem = () => {
     fetchProblems();
   }, [pagination.page, pagination.size, filters]);
 
+  const handleRandomProblem = async () => {
+    try {
+      if (pagination.totalElements === 0) return;
+      
+      const randomOffset = Math.floor(Math.random() * pagination.totalElements);
+      const res = await apiClient.get(`/problem?page=${randomOffset}&size=1`);
+      
+      if (res.data?.success && res.data.data.content.length > 0) {
+        const randomProblem = res.data.data.content[0];
+        navigate(`/problem/${randomProblem.slug || randomProblem.ID || randomProblem.id}`);
+      }
+    } catch (err) {
+      console.error("Failed to fetch random problem:", err);
+    }
+  };
+
   const renderPagination = () => {
     const { page, totalPages } = pagination;
     const pages = [];
@@ -271,7 +289,7 @@ const Problem = () => {
               </div>
             </div>
 
-            <button className="flex items-center gap-2 px-4 py-1.5 bg-neutral-100 dark:bg-black/40 hover:bg-neutral-200 dark:hover:bg-black/60 rounded-full border border-neutral-200 dark:border-white/5 text-sm font-medium text-neutral-700 dark:text-neutral-300 transition-colors">
+            <button onClick={handleRandomProblem} className="flex items-center gap-2 px-4 py-1.5 bg-neutral-100 dark:bg-black/40 hover:bg-neutral-200 dark:hover:bg-black/60 rounded-full border border-neutral-200 dark:border-white/5 text-sm font-medium text-neutral-700 dark:text-neutral-300 transition-colors">
               <Shuffle className="w-4 h-4 text-neutral-500 dark:text-neutral-400" />
               <span>Random</span>
             </button>
@@ -436,7 +454,15 @@ const Problem = () => {
                 )}
               </div>
             </div>
-            <button className="bg-orange-500  hover:bg-orange-600 text-white dark:text-black px-6 py-2.5 rounded-lg font-bold flex items-center gap-2 transition-all shadow-[0_0_20px_rgba(249,115,22,0.3)]">
+            <button 
+              onClick={() => {
+                if (dailyChallenge && dailyChallenge.ID) {
+                  navigate(`/problem/${dailyChallenge.slug || dailyChallenge.ID || dailyChallenge.id}`);
+                }
+              }}
+              disabled={!dailyChallenge || dailyChallenge === null}
+              className="bg-orange-500 hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed text-white dark:text-black px-6 py-2.5 rounded-lg font-bold flex items-center gap-2 transition-all shadow-[0_0_20px_rgba(249,115,22,0.3)]"
+            >
               <Zap className="w-4 h-4" />
               Solve Today
             </button>
@@ -479,7 +505,7 @@ const Problem = () => {
                     <td className="p-4 pl-6 text-neutral-500 font-medium">
                       {p.ID || p.id}
                     </td>
-                    <td className="p-4 font-bold hover:text-purple-600 dark:hover:text-[#9A7DFF] cursor-pointer transition-colors max-w-xs truncate">
+                    <td className="p-4 font-bold hover:text-purple-600 dark:hover:text-[#9A7DFF] cursor-pointer transition-colors max-w-xs truncate" onClick={() => navigate(`/problem/${p.slug || p.ID || p.id}`)}>
                       {p.title}
                     </td>
                     <td className="p-4">

@@ -1,4 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router";
+import apiClient from "../../config/ApiClient";
 import {
   LayoutGrid,
   ChevronRight,
@@ -33,23 +35,203 @@ import {
   Cpu,
   ListChecks,
   X,
+  Loader2,
 } from "lucide-react";
 
 const ProblemInfo = () => {
+  const { identifier } = useParams();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("result");
   const [leftTab, setLeftTab] = useState("description");
+  const [problemData, setProblemData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [discussions, setDiscussions] = useState([]);
+  const [loadingDiscussions, setLoadingDiscussions] = useState(false);
+  const [newPostContent, setNewPostContent] = useState("");
+  const [isPosting, setIsPosting] = useState(false);
+  const [submissions, setSubmissions] = useState([]);
+  const [loadingSubmissions, setLoadingSubmissions] = useState(false);
+  const [notes, setNotes] = useState("");
+  const [isSavingNotes, setIsSavingNotes] = useState(false);
+  const [workspaceData, setWorkspaceData] = useState(null);
+  const [loadingNotes, setLoadingNotes] = useState(false);
+
+  useEffect(() => {
+    const fetchProblem = async () => {
+      try {
+        setLoading(true);
+        const res = await apiClient.get(`/problem/${identifier}`);
+        if (res.data?.success) {
+          setProblemData(res.data.data);
+        }
+      } catch (err) {
+        console.error("Error fetching problem:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (identifier) fetchProblem();
+  }, [identifier]);
+
+  useEffect(() => {
+    if (leftTab === "discussion" && problemData) {
+      const fetchDiscussions = async () => {
+        try {
+          setLoadingDiscussions(true);
+          const problemId = problemData.ID || problemData.id;
+          const res = await apiClient.get(`/problem/discussion/problem/${problemId}`);
+          if (res.data?.success) {
+            setDiscussions(res.data.data);
+          }
+        } catch (err) {
+          console.error("Error fetching discussions:", err);
+        } finally {
+          setLoadingDiscussions(false);
+        }
+      };
+      fetchDiscussions();
+    }
+  }, [leftTab, problemData]);
+
+  useEffect(() => {
+    if (leftTab === "submissions" && problemData) {
+      const fetchSubmissions = async () => {
+        try {
+          setLoadingSubmissions(true);
+          const problemId = problemData.ID || problemData.id;
+          const res = await apiClient.get(`/problem/submission/problem/${problemId}`);
+          if (res.data?.success) {
+            setSubmissions(res.data.data);
+          }
+        } catch (err) {
+          console.error("Error fetching submissions:", err);
+        } finally {
+          setLoadingSubmissions(false);
+        }
+      };
+      fetchSubmissions();
+    }
+  }, [leftTab, problemData]);
+
+  useEffect(() => {
+    if (leftTab === "notes" && problemData) {
+      const fetchWorkspace = async () => {
+        try {
+          setLoadingNotes(true);
+          const problemId = problemData.ID || problemData.id;
+          const res = await apiClient.get(`/problem/workspace/user/problem/${problemId}`);
+          if (res.data?.success && res.data.data) {
+            setWorkspaceData(res.data.data);
+            setNotes(res.data.data.notes || "");
+          }
+        } catch (err) {
+          console.error("Error fetching workspace notes:", err);
+        } finally {
+          setLoadingNotes(false);
+        }
+      };
+      fetchWorkspace();
+    }
+  }, [leftTab, problemData]);
+
+  const handleSaveNotes = async () => {
+    try {
+      setIsSavingNotes(true);
+      const problemId = problemData.ID || problemData.id;
+      const res = await apiClient.post("/problem/workspace", {
+        problemsId: problemId,
+        isBookmark: workspaceData?.isBookmark || false,
+        notes: notes
+      });
+      if (res.data?.success) {
+        setWorkspaceData(res.data.data);
+      }
+    } catch (err) {
+      console.error("Error saving notes:", err);
+    } finally {
+      setIsSavingNotes(false);
+    }
+  };
+
+  const handleNewPost = async () => {
+    if (!newPostContent.trim()) return;
+    try {
+      setIsPosting(true);
+      const problemId = problemData.ID || problemData.id;
+      const res = await apiClient.post("/problem/discussion", {
+        problemsId: problemId,
+        content: newPostContent,
+        isEditorial: false
+      });
+      if (res.data?.success) {
+        setNewPostContent("");
+        setDiscussions((prev) => [res.data.data, ...prev]);
+      }
+    } catch (err) {
+      console.error("Error creating post:", err);
+    } finally {
+      setIsPosting(false);
+    }
+  };
+
+  const handleLikeToggle = async (discussionId, currentlyLiked) => {
+    try {
+      if (currentlyLiked) {
+        const res = await apiClient.delete(`/problem/discussion/${discussionId}/like`);
+        if (res.data?.success) {
+          setDiscussions((prev) => 
+            prev.map((d) => 
+              (d.ID || d.id) === discussionId 
+                ? { ...d, likeCount: res.data.data.likeCount, hasLikedLocally: false } 
+                : d
+            )
+          );
+        }
+      } else {
+        const res = await apiClient.post(`/problem/discussion/${discussionId}/like`);
+        if (res.data?.success) {
+          setDiscussions((prev) => 
+            prev.map((d) => 
+              (d.ID || d.id) === discussionId 
+                ? { ...d, likeCount: res.data.data.likeCount, hasLikedLocally: true } 
+                : d
+            )
+          );
+        }
+      }
+    } catch (err) {
+      console.error("Error toggling like:", err);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen w-full bg-white dark:bg-[#1a1a1a]">
+        <Loader2 className="w-8 h-8 animate-spin text-purple-600 dark:text-[#9A7DFF]" />
+      </div>
+    );
+  }
+
+  if (!problemData) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen w-full bg-white dark:bg-[#1a1a1a]">
+        <h2 className="text-xl font-bold text-neutral-500 mb-4">Problem not found.</h2>
+        <button onClick={() => navigate("/problemset")} className="text-purple-600 hover:underline">Return to Problemset</button>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-screen w-full bg-white dark:bg-[#1a1a1a] text-neutral-700 dark:text-neutral-300 font-sans transition-colors">
       <div className="flex items-center justify-between px-4 py-2 bg-white dark:bg-[#1a1a1a] text-xs sm:text-sm text-neutral-500 dark:text-neutral-400 border-b border-neutral-200 dark:border-neutral-800 h-12 w-full shrink-0 transition-colors">
         <div className="flex items-center space-x-2">
-          <button className="flex items-center space-x-1.5 hover:text-neutral-900 dark:hover:text-white transition-colors">
+          <button onClick={() => navigate("/problemset")} className="flex items-center space-x-1.5 hover:text-neutral-900 dark:hover:text-white transition-colors">
             <LayoutGrid className="w-4 h-4" />
             <span className="hidden sm:inline">Problems</span>
           </button>
           <ChevronRight className="w-3 h-3 text-neutral-400 dark:text-neutral-500" />
           <span className="text-neutral-900 dark:text-white font-medium">
-            #518 - Coin Change II
+            #{problemData.ID || problemData.id} - {problemData.title}
           </span>
         </div>
 
@@ -85,18 +267,14 @@ const ProblemInfo = () => {
         <div className="w-1/2 flex flex-col border-r border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#1a1a1a] overflow-y-auto p-6 transition-colors">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3 text-sm font-medium">
-              <span className="text-neutral-500">#518</span>
-              <span className="text-orange-600 dark:text-orange-500 bg-orange-100 dark:bg-orange-500/10 px-2 py-0.5 rounded-full">
-                Medium
+              <span className="text-neutral-500">#{problemData.ID || problemData.id}</span>
+              <span className={`px-2 py-0.5 rounded-full ${problemData.difficulty === 'Easy' ? 'text-emerald-600 dark:text-emerald-500 bg-emerald-100 dark:bg-emerald-500/10' : problemData.difficulty === 'Medium' ? 'text-orange-600 dark:text-orange-500 bg-orange-100 dark:bg-orange-500/10' : 'text-red-600 dark:text-red-500 bg-red-100 dark:bg-red-500/10'}`}>
+                {problemData.difficulty}
               </span>
-              <div className="flex items-center gap-1 text-amber-600 dark:text-amber-500 bg-amber-100 dark:bg-amber-500/10 px-2 py-0.5 rounded-full">
-                <Flame className="w-3.5 h-3.5" />
-                <span>Daily</span>
-              </div>
             </div>
             <div className="flex items-center gap-2">
               <button className="p-2 rounded-md bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-amber-500 transition-colors border border-neutral-200 dark:border-neutral-700">
-                <Bookmark className="w-4 h-4" />
+                <Bookmark className={`w-4 h-4 ${problemData.bookmarked ? 'fill-amber-500' : ''}`} />
               </button>
               <button className="p-2 rounded-md bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors border border-neutral-200 dark:border-neutral-700">
                 <Share2 className="w-4 h-4" />
@@ -105,16 +283,16 @@ const ProblemInfo = () => {
           </div>
 
           <h1 className="text-2xl font-bold text-neutral-900 dark:text-white mb-4">
-            Coin Change II
+            {problemData.title}
           </h1>
 
-          <div className="flex items-center gap-2 mb-6">
-            {["Dynamic Programming", "Array", "Memoization"].map((tag) => (
+          <div className="flex items-center gap-2 mb-6 flex-wrap">
+            {problemData.tags?.map((tag) => (
               <span
-                key={tag}
+                key={tag.id || tag.name || tag}
                 className="text-xs font-medium text-neutral-600 dark:text-neutral-400 bg-neutral-100 dark:bg-neutral-800/80 px-3 py-1.5 rounded-full"
               >
-                {tag}
+                {tag.name || tag}
               </span>
             ))}
           </div>
@@ -166,134 +344,22 @@ const ProblemInfo = () => {
           </div>
 
           {leftTab === "description" && (
-            <>
-              <div className="text-sm text-neutral-700 dark:text-neutral-300 space-y-4 mb-8 leading-relaxed">
-                <p>
-                  You are given an integer array{" "}
-                  <code className="text-purple-700 dark:text-purple-400 bg-purple-100 dark:bg-purple-500/10 px-1.5 py-0.5 rounded text-[13px]">
-                    coins
-                  </code>{" "}
-                  representing coins of different denominations and an integer{" "}
-                  <code className="text-purple-700 dark:text-purple-400 bg-purple-100 dark:bg-purple-500/10 px-1.5 py-0.5 rounded text-[13px]">
-                    amount
-                  </code>{" "}
-                  representing a total amount of money.
-                </p>
-                <p>
-                  Return the number of combinations that make up that amount. If
-                  that amount of money cannot be made up by any combination of
-                  the coins, return{" "}
-                  <code className="text-purple-700 dark:text-purple-400 bg-purple-100 dark:bg-purple-500/10 px-1.5 py-0.5 rounded text-[13px]">
-                    0
-                  </code>
-                  .
-                </p>
-                <p>
-                  You may assume that you have an infinite number of each kind
-                  of coin. The answer is guaranteed to fit into a signed 32-bit
-                  integer.
-                </p>
-              </div>
-
-              <div className="space-y-6 mb-8">
-                <div>
-                  <h3 className="text-neutral-900 dark:text-white font-bold mb-3">
-                    Example 1
-                  </h3>
-                  <div className="bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-lg p-4 font-mono text-sm">
-                    <div className="mb-2">
-                      <span className="text-neutral-500">Input:</span> amount ={" "}
-                      <span className="text-blue-600 dark:text-blue-400">
-                        5
-                      </span>
-                      , coins ={" "}
-                      <span className="text-blue-600 dark:text-blue-400">
-                        [1,2,5]
-                      </span>
-                    </div>
-                    <div className="mb-4">
-                      <span className="text-neutral-500">Output:</span>{" "}
-                      <span className="text-blue-600 dark:text-blue-400">
-                        4
-                      </span>
-                    </div>
-                    <div className="text-neutral-500">
-                      Explanation: There are four ways to make up the amount:
-                      <br />
-                      5=5
-                      <br />
-                      5=2+2+1
-                      <br />
-                      5=2+1+1+1
-                      <br />
-                      5=1+1+1+1+1
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <h3 className="text-neutral-900 dark:text-white font-bold mb-3">
-                    Example 2
-                  </h3>
-                  <div className="bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-lg p-4 font-mono text-sm">
-                    <div className="mb-2">
-                      <span className="text-neutral-500">Input:</span> amount ={" "}
-                      <span className="text-blue-600 dark:text-blue-400">
-                        3
-                      </span>
-                      , coins ={" "}
-                      <span className="text-blue-600 dark:text-blue-400">
-                        [2]
-                      </span>
-                    </div>
-                    <div className="mb-4">
-                      <span className="text-neutral-500">Output:</span>{" "}
-                      <span className="text-blue-600 dark:text-blue-400">
-                        0
-                      </span>
-                    </div>
-                    <div className="text-neutral-500">
-                      Explanation: The amount 3 cannot be made up with just
-                      coins of 2.
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mb-12">
-                <h3 className="text-neutral-900 dark:text-white font-bold mb-3">
-                  Constraints
-                </h3>
-                <ul className="list-disc list-inside text-sm text-neutral-700 dark:text-neutral-300 space-y-2 font-mono">
-                  <li>1 &le; coins.length &le; 300</li>
-                  <li>1 &le; coins[i] &le; 5000</li>
-                  <li>All values of coins are unique</li>
-                  <li>0 &le; amount &le; 5000</li>
-                </ul>
-              </div>
-            </>
+            <div className="text-sm text-neutral-700 dark:text-neutral-300 space-y-4 mb-8 leading-relaxed prose dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: problemData.description }}>
+            </div>
           )}
 
           {leftTab === "hints" && (
             <div className="text-sm text-neutral-700 dark:text-neutral-300 space-y-4 mb-8">
-              <div className="bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-lg p-4">
-                <div className="font-bold mb-2 text-neutral-900 dark:text-white">
-                  Hint 1
+              {problemData.hints ? problemData.hints.split('\n').map((hint, i) => hint.trim() && (
+                <div key={i} className="bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-lg p-4">
+                  <div className="font-bold mb-2 text-neutral-900 dark:text-white">
+                    Hint {i + 1}
+                  </div>
+                  <p dangerouslySetInnerHTML={{ __html: hint }}></p>
                 </div>
-                <p>
-                  Is this problem similar to the classic knapsack problem? Can
-                  you build the solution dynamically?
-                </p>
-              </div>
-              <div className="bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-lg p-4">
-                <div className="font-bold mb-2 text-neutral-900 dark:text-white">
-                  Hint 2
-                </div>
-                <p>
-                  Try to compute the answer for smaller amounts first, and reuse
-                  those results to find the answer for larger amounts.
-                </p>
-              </div>
+              )) : (
+                <p className="text-neutral-500">No hints available.</p>
+              )}
             </div>
           )}
 
@@ -303,35 +369,70 @@ const ProblemInfo = () => {
                 <h3 className="font-bold text-lg text-neutral-900 dark:text-white">
                   Discussion
                 </h3>
-                <button className="bg-purple-600 hover:bg-purple-700 transition-colors text-white px-4 py-2 rounded-lg font-medium">
-                  New Post
-                </button>
               </div>
-              <div className="space-y-4">
-                {[1, 2, 3].map((i) => (
-                  <div
-                    key={i}
-                    className="bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-lg p-4"
+
+              <div className="mb-6 flex flex-col gap-3">
+                <textarea
+                  value={newPostContent}
+                  onChange={(e) => setNewPostContent(e.target.value)}
+                  placeholder="Share your thoughts or approach..."
+                  className="w-full bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-lg p-3 resize-none focus:outline-none focus:ring-2 focus:ring-purple-500 text-neutral-900 dark:text-white"
+                  rows={3}
+                />
+                <div className="flex justify-end">
+                  <button 
+                    onClick={handleNewPost}
+                    disabled={isPosting || !newPostContent.trim()}
+                    className="bg-purple-600 hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2"
                   >
-                    <div className="flex items-center gap-3 mb-2">
-                      <div className="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-700 dark:text-purple-400 font-bold">
-                        U{i}
+                    {isPosting && <Loader2 className="w-4 h-4 animate-spin" />}
+                    Post
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                {loadingDiscussions ? (
+                  <div className="flex justify-center p-4">
+                    <Loader2 className="w-6 h-6 animate-spin text-purple-600 dark:text-[#9A7DFF]" />
+                  </div>
+                ) : discussions.length > 0 ? (
+                  discussions.map((discussion) => (
+                    <div
+                      key={discussion.ID || discussion.id}
+                      className="bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-lg p-4"
+                    >
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-700 dark:text-purple-400 font-bold uppercase">
+                          {discussion.username ? discussion.username.charAt(0) : 'U'}
+                        </div>
+                        <div>
+                          <div className="font-medium text-neutral-900 dark:text-white">
+                            {discussion.username || `User ${discussion.userId || "Anonymous"}`}
+                          </div>
+                          <div className="text-xs text-neutral-500">
+                            {discussion.createdAt ? new Date(discussion.createdAt).toLocaleString() : 'Recently'}
+                          </div>
+                        </div>
                       </div>
-                      <div>
-                        <div className="font-medium text-neutral-900 dark:text-white">
-                          User_{i}
-                        </div>
-                        <div className="text-xs text-neutral-500">
-                          2 hours ago
-                        </div>
+                      <p className="whitespace-pre-wrap">{discussion.content}</p>
+                      
+                      <div className="flex items-center gap-4 mt-3 pt-3 border-t border-neutral-200 dark:border-neutral-800 text-neutral-500 dark:text-neutral-400 font-medium">
+                        <button 
+                          onClick={() => handleLikeToggle(discussion.ID || discussion.id, discussion.hasLikedLocally)} 
+                          className={`flex items-center gap-1.5 transition-colors ${discussion.hasLikedLocally ? 'text-purple-600 dark:text-purple-400' : 'hover:text-purple-600 dark:hover:text-purple-400'}`}
+                        >
+                          <ThumbsUp className={`w-4 h-4 ${discussion.hasLikedLocally ? 'fill-current' : ''}`} />
+                          <span>{discussion.likeCount || 0}</span>
+                        </button>
                       </div>
                     </div>
-                    <p>
-                      This is a great problem to practice dynamic programming.
-                      My approach was O(n*m) time complexity.
-                    </p>
+                  ))
+                ) : (
+                  <div className="text-center p-4 text-neutral-500">
+                    No discussions yet. Be the first to start one!
                   </div>
-                ))}
+                )}
               </div>
             </div>
           )}
@@ -349,24 +450,31 @@ const ProblemInfo = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  <tr className="border-b border-neutral-200 dark:border-neutral-800">
-                    <td className="py-3">10 mins ago</td>
-                    <td className="py-3 text-emerald-600 dark:text-emerald-500 font-medium">
-                      Accepted
-                    </td>
-                    <td className="py-3">48 ms</td>
-                    <td className="py-3">23.7 MB</td>
-                    <td className="py-3">Python3</td>
-                  </tr>
-                  <tr className="border-b border-neutral-200 dark:border-neutral-800">
-                    <td className="py-3">15 mins ago</td>
-                    <td className="py-3 text-red-600 dark:text-red-500 font-medium">
-                      Wrong Answer
-                    </td>
-                    <td className="py-3">N/A</td>
-                    <td className="py-3">N/A</td>
-                    <td className="py-3">Python3</td>
-                  </tr>
+                  {loadingSubmissions ? (
+                    <tr>
+                      <td colSpan="5" className="py-8 text-center">
+                        <Loader2 className="w-6 h-6 animate-spin mx-auto text-purple-600 dark:text-[#9A7DFF]" />
+                      </td>
+                    </tr>
+                  ) : submissions.length > 0 ? (
+                    submissions.map((sub) => (
+                      <tr key={sub.ID || sub.id} className="border-b border-neutral-200 dark:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-800/30 transition-colors">
+                        <td className="py-3">{sub.createdAt ? new Date(sub.createdAt).toLocaleString() : 'N/A'}</td>
+                        <td className={`py-3 font-medium ${sub.status === 'ACCEPTED' ? 'text-emerald-600 dark:text-emerald-500' : 'text-red-600 dark:text-red-500'}`}>
+                          {sub.status || 'N/A'}
+                        </td>
+                        <td className="py-3">{sub.executionTimeMs != null ? `${sub.executionTimeMs} ms` : 'N/A'}</td>
+                        <td className="py-3">{sub.memoryUsedKb != null ? `${(sub.memoryUsedKb / 1024).toFixed(1)} MB` : 'N/A'}</td>
+                        <td className="py-3">{sub.language || 'N/A'}</td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="5" className="py-8 text-center text-neutral-500">
+                        No submissions yet.
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
@@ -374,12 +482,25 @@ const ProblemInfo = () => {
 
           {leftTab === "notes" && (
             <div className="text-sm text-neutral-700 dark:text-neutral-300 mb-8 flex flex-col h-64">
-              <textarea
-                className="flex-1 w-full bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-lg p-4 resize-none focus:outline-none focus:ring-2 focus:ring-purple-500 text-neutral-900 dark:text-white"
-                placeholder="Write your notes for this problem here..."
-              ></textarea>
+              {loadingNotes ? (
+                <div className="flex-1 flex items-center justify-center border border-neutral-200 dark:border-neutral-800 rounded-lg">
+                  <Loader2 className="w-6 h-6 animate-spin text-purple-600 dark:text-[#9A7DFF]" />
+                </div>
+              ) : (
+                <textarea
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  className="flex-1 w-full bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-lg p-4 resize-none focus:outline-none focus:ring-2 focus:ring-purple-500 text-neutral-900 dark:text-white"
+                  placeholder="Write your notes for this problem here..."
+                />
+              )}
               <div className="flex justify-end mt-4">
-                <button className="bg-purple-600 hover:bg-purple-700 transition-colors text-white px-4 py-2 rounded-lg font-medium">
+                <button 
+                  onClick={handleSaveNotes}
+                  disabled={isSavingNotes || loadingNotes}
+                  className="bg-purple-600 hover:bg-purple-700 disabled:opacity-50 transition-colors text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2"
+                >
+                  {isSavingNotes && <Loader2 className="w-4 h-4 animate-spin" />}
                   Save Notes
                 </button>
               </div>
@@ -486,19 +607,9 @@ const ProblemInfo = () => {
               <div className="flex flex-col gap-1">
                 <span className="text-neutral-500 font-medium">Difficulty</span>
                 <span className="text-orange-600 dark:text-orange-500 font-bold">
-                  Medium
+                  {problemData.difficulty}
                 </span>
               </div>
-            </div>
-            <div className="flex items-center gap-4 text-neutral-500 dark:text-neutral-400 font-medium">
-              <button className="flex items-center gap-1.5 hover:text-neutral-900 dark:hover:text-white transition-colors">
-                <ThumbsUp className="w-4 h-4" />
-                <span>4.8k</span>
-              </button>
-              <button className="flex items-center gap-1.5 hover:text-neutral-900 dark:hover:text-white transition-colors">
-                <ThumbsDown className="w-4 h-4" />
-                <span>312</span>
-              </button>
             </div>
           </div>
         </div>

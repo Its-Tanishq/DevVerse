@@ -117,6 +117,9 @@ public class DiscussionService {
         if (discussion.getLikedByUsers() != null) {
             dto.setLikeCount(discussion.getLikedByUsers().size());
         }
+        if (discussion.getUser() != null) {
+            dto.setUsername(discussion.getUser().getActualUsername());
+        }
         return dto;
     }
 }

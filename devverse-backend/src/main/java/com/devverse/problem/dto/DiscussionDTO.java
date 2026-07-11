@@ -15,6 +15,8 @@ public class DiscussionDTO {
     private Long ID;
 
     private Long userId;
+    
+    private String username;
 
     @NotNull(message = "Problem ID cannot be null")
     private Long problemsId;
