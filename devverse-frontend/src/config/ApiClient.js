@@ -42,6 +42,8 @@ apiClient.interceptors.response.use(
       return Promise.reject(error);
     }
 
+    originalReq._retry = true;
+
     if (isRefreshing) {
       return new Promise((resolve, reject) => {
         queueReq((newRefreshToken) => {
@@ -56,7 +58,7 @@ apiClient.interceptors.response.use(
     isRefreshing = true;
 
     try {
-      const res = await apiClient.post("/auth/refresh-token");
+      const res = await axios.post(`${apiClient.defaults.baseURL}/auth/refresh-token`, {}, { withCredentials: true });
       const newToken = res.data?.data?.accessToken;
 
       if (!newToken) throw new Error("No access token received");
@@ -70,7 +72,7 @@ apiClient.interceptors.response.use(
       return apiClient(originalReq);
     } catch (error) {
       releaseQueue(null);
-      useAuth.getState().logout();
+      useAuth.getState().logout(true);
       return Promise.reject(error);
     } finally {
       isRefreshing = false;

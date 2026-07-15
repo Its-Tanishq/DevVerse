@@ -38,7 +38,9 @@ public class ProblemService {
             throw new IllegalArgumentException("Problem with title " + problemsDTO.getTitle() + " already exists");
         }
 
-        String slug = problemsDTO.getTitle().replace(" ", "-");
+        String slug = problemsDTO.getTitle().toLowerCase()
+                .replaceAll("[^a-z0-9]+", "-")
+                .replaceAll("^-|-$", "");
 
         if (problemsRepo.findBySlug(slug).isPresent()) {
             throw new IllegalArgumentException("Problem with slug " + slug + " already exists");

@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.time.Instant;
 
@@ -24,16 +25,19 @@ public class ProblemController {
     private final SubmissionService submissionService;
     private final UserService userService;
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<ApiResponse<?>> createProblem(@Valid @RequestBody ProblemDTO problemDTO) {
         return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResponse<>(true, "Problem created successfully", problemService.createProblem(problemDTO), Instant.now()));
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/{id}")
     public ResponseEntity<ApiResponse<?>> updateProblem(@PathVariable Long id, @RequestBody ProblemDTO problemDTO) {
         return ResponseEntity.ok(new ApiResponse<>(true, "Problem updated successfully", problemService.updateProblem(id, problemDTO), Instant.now()));
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<?>> deleteProblem(@PathVariable Long id) {
         problemService.deleteProblem(id);
@@ -50,7 +54,10 @@ public class ProblemController {
             @RequestParam(defaultValue = "10") int size) {
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        Long userId = userService.getUserByEmail(auth.getName()).getID();
+        Long userId = null;
+        if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getName())) {
+            userId = userService.getUserByEmail(auth.getName()).getID();
+        }
         return ResponseEntity.ok(new ApiResponse<>(true, "Problems fetched successfully", problemService.getProblems(difficulty, tag, company, status, userId, page, size), Instant.now()));
     }
 

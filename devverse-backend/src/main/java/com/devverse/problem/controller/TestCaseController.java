@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.time.Instant;
 
@@ -18,21 +19,25 @@ public class TestCaseController {
 
     private final TestCaseService testCaseService;
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<ApiResponse<?>> createTestCase(@Valid @RequestBody TestCaseDTO dto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResponse<>(true, "TestCase created successfully", testCaseService.createTestCase(dto), Instant.now()));
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/{id}")
     public ResponseEntity<ApiResponse<?>> updateTestCase(@PathVariable Long id, @RequestBody TestCaseDTO dto) {
         return ResponseEntity.ok(new ApiResponse<>(true, "TestCase updated successfully", testCaseService.updateTestCase(id, dto), Instant.now()));
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<?>> getTestCaseById(@PathVariable Long id) {
         return ResponseEntity.ok(new ApiResponse<>(true, "TestCase fetched successfully", testCaseService.getTestCaseById(id), Instant.now()));
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/problem/{problemId}")
     public ResponseEntity<ApiResponse<?>> getTestCasesByProblemId(@PathVariable Long problemId) {
         return ResponseEntity.ok(new ApiResponse<>(true, "TestCases fetched successfully", testCaseService.getTestCasesByProblemId(problemId), Instant.now()));
@@ -43,6 +48,7 @@ public class TestCaseController {
         return ResponseEntity.ok(new ApiResponse<>(true, "Public TestCases fetched successfully", testCaseService.getPublicTestCasesByProblemId(problemId), Instant.now()));
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<?>> deleteTestCase(@PathVariable Long id) {
         testCaseService.deleteTestCase(id);

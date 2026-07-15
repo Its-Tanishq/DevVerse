@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router";
 import Home from "./pages/Home";
 import Signup from "./pages/auth/Signup";
@@ -22,6 +23,15 @@ function UserLayout() {
 }
 
 function App() {
+  const authStatus = useAuth((state) => state.authStatus);
+  const verifyAuth = useAuth((state) => state.verifyAuth);
+
+  useEffect(() => {
+    if (authStatus) {
+      verifyAuth();
+    }
+  }, []);
+
   return (
     <BrowserRouter>
       <Routes>

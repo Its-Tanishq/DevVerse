@@ -11,4 +11,5 @@ import java.util.Optional;
 public interface UserProblemWorkspaceRepo extends JpaRepository<UserProblemWorkspace, Long> {
     Optional<UserProblemWorkspace> findByUserAndProblems(User user, Problem problems);
     List<UserProblemWorkspace> findByUser(User user);
+    List<UserProblemWorkspace> findByUserAndIsBookmarkTrue(User user);
 }

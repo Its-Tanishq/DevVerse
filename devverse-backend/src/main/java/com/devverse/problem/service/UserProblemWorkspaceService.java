@@ -76,9 +76,17 @@ public class UserProblemWorkspaceService {
     }
 
     @Transactional
-    public void deleteWorkspace(Long workspaceId) {
+    public void deleteWorkspace(Long workspaceId, Long userId) {
         UserProblemWorkspace existing = workspaceRepo.findById(workspaceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Workspace not found with id: " + workspaceId));
+
+        User user = userRepo.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
+
+        if (!existing.getUser().getID().equals(userId) && !user.getRole().equals("ADMIN")) {
+            throw new org.springframework.security.access.AccessDeniedException("You do not have permission to delete this workspace");
+        }
+
         workspaceRepo.delete(existing);
     }
 
@@ -86,10 +94,9 @@ public class UserProblemWorkspaceService {
         User user = userRepo.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
 
-        List<UserProblemWorkspace> workspaces = workspaceRepo.findByUser(user);
+        List<UserProblemWorkspace> workspaces = workspaceRepo.findByUserAndIsBookmarkTrue(user);
 
         return workspaces.stream()
-                .filter(UserProblemWorkspace::getIsBookmark)
                 .map(ws -> modelMapper.map(ws, UserProblemWorkspaceDTO.class))
                 .collect(Collectors.toList());
     }

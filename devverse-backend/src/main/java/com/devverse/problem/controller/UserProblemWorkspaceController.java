@@ -53,7 +53,9 @@ public class UserProblemWorkspaceController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<?>> deleteWorkspace(@PathVariable Long id) {
-        workspaceService.deleteWorkspace(id);
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        Long userId = userService.getUserByEmail(auth.getName()).getID();
+        workspaceService.deleteWorkspace(id, userId);
         return ResponseEntity.ok(new ApiResponse<>(true, "Workspace deleted successfully", null, Instant.now()));
     }
 }

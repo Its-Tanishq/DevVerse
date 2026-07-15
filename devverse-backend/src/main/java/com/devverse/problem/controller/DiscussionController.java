@@ -59,7 +59,9 @@ public class DiscussionController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<?>> deleteDiscussion(@PathVariable Long id) {
-        discussionService.deleteDiscussion(id);
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        Long userId = userService.getUserByEmail(auth.getName()).getID();
+        discussionService.deleteDiscussion(id, userId);
         return ResponseEntity.ok(new ApiResponse<>(true, "Discussion deleted successfully", null, Instant.now()));
     }
 

@@ -97,7 +97,9 @@ const useAuth = create()(
             authLoading: true,
           });
 
-          await apiClient.post("/auth/logout");
+          if (!silent) {
+            await apiClient.post("/auth/logout");
+          }
         } catch (error) {
           console.error(error);
         } finally {
@@ -115,6 +117,15 @@ const useAuth = create()(
           return true;
         }
         return false;
+      },
+
+      verifyAuth: async () => {
+        if (!get().accessToken) return;
+        try {
+          await apiClient.get("/user/me");
+        } catch (error) {
+          get().logout(true);
+        }
       },
     }),
     {

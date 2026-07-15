@@ -21,12 +21,10 @@ public interface ProblemRepo extends JpaRepository<Problem, Long> {
     Optional<Problem> findByTitle(String title);
     List<Problem> findByTags(Tag tags);
 
-    @Query("SELECT DISTINCT p FROM Problem p " +
-           "LEFT JOIN p.tags t " +
-           "LEFT JOIN p.companies c " +
+    @Query("SELECT p FROM Problem p " +
            "WHERE (:difficulty IS NULL OR p.difficulty = :difficulty) " +
-           "AND (:tag IS NULL OR t.name = :tag) " +
-           "AND (:company IS NULL OR c.name = :company) " +
+           "AND (:tag IS NULL OR EXISTS (SELECT 1 FROM p.tags t WHERE t.name = :tag)) " +
+           "AND (:company IS NULL OR EXISTS (SELECT 1 FROM p.companies c WHERE c.name = :company)) " +
            "AND (:status IS NULL OR :userId IS NULL OR " +
            "(:status = 'solved' AND EXISTS (SELECT 1 FROM Submission s WHERE s.problems = p AND s.user.ID = :userId AND s.status = 'ACCEPTED')) OR " +
            "(:status = 'attempted' AND EXISTS (SELECT 1 FROM Submission s WHERE s.problems = p AND s.user.ID = :userId AND s.status != 'ACCEPTED')) OR " +

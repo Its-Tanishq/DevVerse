@@ -81,9 +81,17 @@ public class DiscussionService {
                 .collect(Collectors.toList());
     }
 
-    public void deleteDiscussion(Long id) {
+    public void deleteDiscussion(Long id, Long userId) {
         Discussion discussion = discussionsRepo.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Discussion not found with id: " + id));
+
+        User user = userRepo.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
+
+        if (!discussion.getUser().getID().equals(userId) && !user.getRole().equals("ADMIN")) {
+            throw new org.springframework.security.access.AccessDeniedException("You do not have permission to delete this discussion");
+        }
+
         discussionsRepo.delete(discussion);
     }
 

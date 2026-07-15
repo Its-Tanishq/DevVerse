@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.time.Instant;
@@ -12,6 +13,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Data
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
@@ -19,6 +21,7 @@ import java.util.Set;
 @Table(name = "discussions")
 public class Discussion {
 
+    @EqualsAndHashCode.Include
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long ID;

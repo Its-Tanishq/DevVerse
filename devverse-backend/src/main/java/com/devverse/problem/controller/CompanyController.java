@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.time.Instant;
 
@@ -18,28 +19,33 @@ public class CompanyController {
 
     private final CompanyService companyService;
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<ApiResponse<?>> createCompany(@Valid @RequestBody CompanyDTO companyDTO) {
         return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResponse<>(true, "Company created successfully", companyService.createCompany(companyDTO), Instant.now()));
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/{companyId}")
     public ResponseEntity<ApiResponse<?>> updateCompany(@PathVariable Long companyId, @RequestBody CompanyDTO companyDTO) {
         return ResponseEntity.ok(new ApiResponse<>(true, "Company updated successfully", companyService.updateCompany(companyId, companyDTO), Instant.now()));
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{companyId}")
     public ResponseEntity<ApiResponse<?>> deleteCompany(@PathVariable Long companyId) {
         companyService.deleteCompany(companyId);
         return ResponseEntity.ok(new ApiResponse<>(true, "Company deleted successfully", null, Instant.now()));
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{companyId}/problem/{problemId}") 
     public ResponseEntity<ApiResponse<?>> updateProblemCompany(@PathVariable Long problemId, @PathVariable Long companyId) {
         companyService.updateProblemCompany(problemId, companyId);
         return ResponseEntity.ok(new ApiResponse<>(true, "Problem associated with company successfully", null, Instant.now()));
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{companyId}/problem/{problemId}") 
     public ResponseEntity<ApiResponse<?>> deleteProblemCompany(@PathVariable Long problemId, @PathVariable Long companyId) {
         companyService.deleteProblemCompany(problemId, companyId);

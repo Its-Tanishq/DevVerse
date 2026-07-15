@@ -40,6 +40,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth->auth
                         .requestMatchers(AppConstants.AUTH_PUBLIC_URLS).permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, AppConstants.GET_PUBLIC_URLS).permitAll()
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2 ->

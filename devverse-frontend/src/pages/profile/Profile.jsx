@@ -15,6 +15,7 @@ import {
   Globe,
   Lock,
   Eye,
+  EyeOff,
   ShieldCheck,
   User,
   Loader2,
@@ -35,6 +36,11 @@ const Profile = () => {
     oldPassword: "",
     newPassword: "",
     confirmPassword: "",
+  });
+  const [showPasswords, setShowPasswords] = useState({
+    old: false,
+    new: false,
+    confirm: false,
   });
   const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
@@ -703,7 +709,7 @@ const Profile = () => {
                       <Lock size={16} />
                     </div>
                     <input
-                      type="password"
+                      type={showPasswords.old ? "text" : "password"}
                       value={passwords.oldPassword}
                       onChange={(e) =>
                         setPasswords({
@@ -714,8 +720,11 @@ const Profile = () => {
                       placeholder="••••••••••••"
                       className="w-full pl-9 pr-10 py-2 bg-card border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#7c3aed]/20 focus:border-[#7c3aed] transition-colors text-sm text-foreground"
                     />
-                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer text-muted-foreground hover:text-foreground">
-                      <Eye size={16} />
+                    <div 
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer text-muted-foreground hover:text-foreground"
+                      onClick={() => setShowPasswords((prev) => ({ ...prev, old: !prev.old }))}
+                    >
+                      {showPasswords.old ? <EyeOff size={16} /> : <Eye size={16} />}
                     </div>
                   </div>
                 </div>
@@ -729,7 +738,7 @@ const Profile = () => {
                       <Lock size={16} />
                     </div>
                     <input
-                      type="password"
+                      type={showPasswords.new ? "text" : "password"}
                       value={passwords.newPassword}
                       onChange={(e) =>
                         setPasswords({
@@ -740,8 +749,11 @@ const Profile = () => {
                       placeholder="••••••••••••"
                       className="w-full pl-9 pr-10 py-2 bg-card border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#7c3aed]/20 focus:border-[#7c3aed] transition-colors text-sm text-foreground"
                     />
-                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer text-muted-foreground hover:text-foreground">
-                      <Eye size={16} />
+                    <div 
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer text-muted-foreground hover:text-foreground"
+                      onClick={() => setShowPasswords((prev) => ({ ...prev, new: !prev.new }))}
+                    >
+                      {showPasswords.new ? <EyeOff size={16} /> : <Eye size={16} />}
                     </div>
                   </div>
                 </div>
@@ -755,7 +767,7 @@ const Profile = () => {
                       <Lock size={16} />
                     </div>
                     <input
-                      type="password"
+                      type={showPasswords.confirm ? "text" : "password"}
                       value={passwords.confirmPassword}
                       onChange={(e) =>
                         setPasswords({
@@ -766,8 +778,11 @@ const Profile = () => {
                       placeholder="••••••••••••"
                       className="w-full pl-9 pr-10 py-2 bg-card border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#7c3aed]/20 focus:border-[#7c3aed] transition-colors text-sm text-foreground"
                     />
-                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer text-muted-foreground hover:text-foreground">
-                      <Eye size={16} />
+                    <div 
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer text-muted-foreground hover:text-foreground"
+                      onClick={() => setShowPasswords((prev) => ({ ...prev, confirm: !prev.confirm }))}
+                    >
+                      {showPasswords.confirm ? <EyeOff size={16} /> : <Eye size={16} />}
                     </div>
                   </div>
                 </div>
