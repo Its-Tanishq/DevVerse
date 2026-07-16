@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import com.devverse.admin.service.ActivityLogService;
 
 @Service
 @RequiredArgsConstructor
@@ -21,6 +22,7 @@ public class TestCaseService {
     private final TestCaseRepo testCasesRepo;
     private final ProblemRepo problemsRepo;
     private final ModelMapper modelMapper;
+    private final ActivityLogService activityLogService;
 
     @Transactional
     public TestCaseDTO createTestCase(TestCaseDTO testCaseDTO) {
@@ -31,6 +33,15 @@ public class TestCaseService {
         testCase.setProblems(problem);
 
         TestCase saved = testCasesRepo.save(testCase);
+
+        activityLogService.logActivity(
+                "Test case added to problem '" + problem.getTitle() + "'",
+                "TEST_CASE",
+                saved.getID(),
+                "INFO",
+                "#10b981" // emerald
+        );
+
         return modelMapper.map(saved, TestCaseDTO.class);
     }
 
@@ -58,6 +69,15 @@ public class TestCaseService {
         }
 
         TestCase updated = testCasesRepo.save(existing);
+        
+        activityLogService.logActivity(
+                "Test case updated for problem '" + updated.getProblems().getTitle() + "'",
+                "TEST_CASE",
+                updated.getID(),
+                "INFO",
+                "#10b981" // emerald
+        );
+
         return modelMapper.map(updated, TestCaseDTO.class);
     }
 
@@ -65,6 +85,15 @@ public class TestCaseService {
     public void deleteTestCase(Long testCaseId) {
         TestCase existing = testCasesRepo.findById(testCaseId)
                 .orElseThrow(() -> new ResourceNotFoundException("TestCase not found with id: " + testCaseId));
+        
+        activityLogService.logActivity(
+                "Test case deleted from problem '" + existing.getProblems().getTitle() + "'",
+                "TEST_CASE",
+                existing.getID(),
+                "WARNING",
+                "#f97316" // orange
+        );
+
         testCasesRepo.delete(existing);
     }
 

@@ -11,6 +11,12 @@ import Dashboard from "./pages/dashboard/Dashboard";
 import Profile from "./pages/profile/Profile";
 import Problemset from "./pages/problem/Problemset";
 import ProblemInfo from "./pages/problem/ProblemInfo";
+import Layout from "./pages/admin/Layout";
+import DashboardAdmin from "./pages/admin/Dashboard";
+import Users from "./pages/admin/Users";
+import Problems from "./pages/admin/Problems";
+import Companies from "./pages/admin/Companies";
+import TestCases from "./pages/admin/TestCases";
 
 function UserLayout() {
   const isLoggedIn = useAuth((state) => state.authStatus);
@@ -44,6 +50,15 @@ function App() {
           <Route path="/oauth/success" element={<OAuthSuccess />} />
           <Route path="/problemset" element={<Problemset />} />
           <Route path="/problem/:identifier" element={<ProblemInfo />} />
+
+          {/* Admin Routes: Only accessible by ADMIN users */}
+          <Route path="/admin" element={<Layout />}>
+            <Route index element={<DashboardAdmin />} />
+            <Route path="users" element={<Users />} />
+            <Route path="problems" element={<Problems />} />
+            <Route path="companies" element={<Companies />} />
+            <Route path="testcases" element={<TestCases />} />
+          </Route>
 
           {/* Protected Routes: Only accessible when logged in */}
           <Route element={<UserLayout />}>

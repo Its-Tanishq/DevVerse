@@ -19,6 +19,7 @@ import java.util.Map;
 import java.util.HashMap;
 import com.devverse.problem.dto.UserProblemStatusDTO;
 import com.devverse.problem.dto.UserProblemWorkspaceDTO;
+import com.devverse.admin.service.ActivityLogService;
 import java.util.Set;
 import java.util.List;
 
@@ -30,6 +31,7 @@ public class ProblemService {
     private final ModelMapper modelMapper;
     private final SubmissionService submissionService;
     private final UserProblemWorkspaceService workspaceService;
+    private final ActivityLogService activityLogService;
 
     @Transactional
     public ProblemDTO createProblem(ProblemDTO problemsDTO) {
@@ -50,6 +52,14 @@ public class ProblemService {
         problem.setSlug(slug);
 
         Problem saveProblem = problemsRepo.save(problem);
+
+        activityLogService.logActivity(
+                "Problem '" + saveProblem.getTitle() + "' created",
+                "PROBLEM",
+                saveProblem.getID(),
+                "INFO",
+                "#06b6d4" // cyan
+        );
 
         return modelMapper.map(saveProblem, ProblemDTO.class);
     }
@@ -78,6 +88,15 @@ public class ProblemService {
         }
 
         Problem updatedProblem = problemsRepo.save(problem);
+
+        activityLogService.logActivity(
+                "Problem '" + updatedProblem.getTitle() + "' updated",
+                "PROBLEM",
+                updatedProblem.getID(),
+                "INFO",
+                "#06b6d4" // cyan
+        );
+
         return modelMapper.map(updatedProblem, ProblemDTO.class);
     }
 
@@ -85,6 +104,15 @@ public class ProblemService {
     public void deleteProblem(Long id) {
         Problem problem = problemsRepo.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Problem with id " + id + " not found"));
+        
+        activityLogService.logActivity(
+                "Problem '" + problem.getTitle() + "' deleted",
+                "PROBLEM",
+                problem.getID(),
+                "WARNING",
+                "#f97316" // orange
+        );
+
         problemsRepo.delete(problem);
     }
 

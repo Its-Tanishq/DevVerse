@@ -14,6 +14,7 @@ import com.devverse.problem.model.Company;
 import com.devverse.problem.model.Problem;
 import java.util.List;
 import java.util.stream.Collectors;
+import com.devverse.admin.service.ActivityLogService;
 
 @Service
 @RequiredArgsConstructor
@@ -22,6 +23,7 @@ public class CompanyService {
     private final CompanyRepo companiesRepo;
     private final ProblemRepo problemsRepo;
     private final ModelMapper modelMapper;
+    private final ActivityLogService activityLogService;
 
     @Transactional
     public CompanyDTO createCompany(CompanyDTO companyDTO) {
@@ -30,6 +32,15 @@ public class CompanyService {
         }
         Company company = modelMapper.map(companyDTO, Company.class);
         company = companiesRepo.save(company);
+        
+        activityLogService.logActivity(
+                "Company '" + company.getName() + "' created",
+                "COMPANY",
+                company.getID(),
+                "INFO",
+                "#f59e0b" // amber
+        );
+
         return modelMapper.map(company, CompanyDTO.class);
     }
 
@@ -46,6 +57,15 @@ public class CompanyService {
         }
 
         company = companiesRepo.save(company);
+        
+        activityLogService.logActivity(
+                "Company '" + company.getName() + "' updated",
+                "COMPANY",
+                company.getID(),
+                "INFO",
+                "#f59e0b" // amber
+        );
+
         return modelMapper.map(company, CompanyDTO.class);
     }
 
@@ -60,6 +80,14 @@ public class CompanyService {
             problemsRepo.save(problem);
         }
         
+        activityLogService.logActivity(
+                "Company '" + company.getName() + "' deleted",
+                "COMPANY",
+                company.getID(),
+                "WARNING",
+                "#f97316" // orange
+        );
+
         companiesRepo.delete(company);
     }
 

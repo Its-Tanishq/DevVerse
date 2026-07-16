@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import com.devverse.common.ApiResponse;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import java.time.Instant;
 
@@ -24,6 +25,7 @@ public class UserController {
 //        return ResponseEntity.status(HttpStatus.CREATED).body(userService.registerUser(userDTO));
 //    }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
     public ResponseEntity<ApiResponse<?>> getAllUser(
             @RequestParam(defaultValue = "0") int page,

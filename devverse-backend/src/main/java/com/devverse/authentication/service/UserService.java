@@ -18,6 +18,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.devverse.admin.service.ActivityLogService;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -29,6 +30,7 @@ public class UserService {
     private final ModelMapper modelMapper;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
+    private final ActivityLogService activityLogService;
 
     @Transactional
     public UserDTO createUser(UserDTO userDTO) {
@@ -51,6 +53,14 @@ public class UserService {
         Map<String, Object> variables = new HashMap<>();
         variables.put("username", savedUser.getActualUsername());
         emailService.sendMail(savedUser.getEmail(), "Welcome to DevVerse", "welcome-email", variables);
+
+        activityLogService.logActivity(
+                "New user registered: " + savedUser.getActualUsername(),
+                "USER",
+                savedUser.getID(),
+                "INFO",
+                "#10b981"
+        );
 
         return modelMapper.map(savedUser, UserDTO.class);
     }
@@ -113,6 +123,15 @@ public class UserService {
     public void deleteUser(Long id) {
         User user = userRepo.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
+        
+        activityLogService.logActivity(
+                "User deleted: " + user.getActualUsername(),
+                "USER",
+                user.getID(),
+                "CRITICAL",
+                "#ef4444"
+        );
+        
         userRepo.delete(user);
     }
 

@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 
@@ -26,16 +27,19 @@ public class DailyChallengeController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<?>> createDailyChallenge(@Valid @RequestBody DailyChallengeDTO dailyChallengeDTO) {
         return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResponse<>(true, "Daily challenge created successfully", dailyChallengeService.createDailyChallenge(dailyChallengeDTO), Instant.now()));
     }
 
     @PatchMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<?>> updateDailyChallenge(@PathVariable Long id, @RequestBody DailyChallengeDTO dailyChallengeDTO) {
         return ResponseEntity.ok(new ApiResponse<>(true, "Daily challenge updated successfully", dailyChallengeService.updateDailyChallenge(id, dailyChallengeDTO), Instant.now()));
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<?>> deleteDailyChallenge(@PathVariable Long id) {
         dailyChallengeService.deleteDailyChallenge(id);
         return ResponseEntity.ok(new ApiResponse<>(true, "Daily challenge deleted successfully", null, Instant.now()));
