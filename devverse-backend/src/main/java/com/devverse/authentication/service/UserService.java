@@ -71,6 +71,12 @@ public class UserService {
         return modelMapper.map(user, UserDTO.class);
     }
 
+    public UserDTO getUserByUsername(String username) {
+        User user = userRepo.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with username: " + username));
+        return modelMapper.map(user, UserDTO.class);
+    }
+
     public UserDTO getUserById(Long id) {
         User user = userRepo.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));

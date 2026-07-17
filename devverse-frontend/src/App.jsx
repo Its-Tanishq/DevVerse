@@ -14,6 +14,7 @@ import ProblemInfo from "./pages/problem/ProblemInfo";
 import Layout from "./pages/admin/Layout";
 import DashboardAdmin from "./pages/admin/Dashboard";
 import Users from "./pages/admin/Users";
+import UserProfile from "./pages/admin/UserProfile";
 import Problems from "./pages/admin/Problems";
 import Companies from "./pages/admin/Companies";
 import TestCases from "./pages/admin/TestCases";
@@ -55,6 +56,7 @@ function App() {
           <Route path="/admin" element={<Layout />}>
             <Route index element={<DashboardAdmin />} />
             <Route path="users" element={<Users />} />
+            <Route path="users/:id" element={<UserProfile />} />
             <Route path="problems" element={<Problems />} />
             <Route path="companies" element={<Companies />} />
             <Route path="testcases" element={<TestCases />} />

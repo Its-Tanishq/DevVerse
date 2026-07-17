@@ -1,5 +1,7 @@
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { FolderOpen, Search, Plus, MoreHorizontal } from "lucide-react";
+import apiClient from "../../config/ApiClient";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -7,6 +9,45 @@ const fadeUp = {
 };
 
 export default function Problems() {
+  const [problems, setProblems] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchProblems();
+  }, []);
+
+  const fetchProblems = async () => {
+    try {
+      setLoading(true);
+      const response = await apiClient.get("/problem");
+      const data = response.data?.data;
+      if (data && data.content) {
+        setProblems(data.content);
+      } else if (Array.isArray(data)) {
+        setProblems(data);
+      } else {
+        setProblems([]);
+      }
+    } catch (error) {
+      console.error("Failed to fetch problems:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getDifficultyColor = (difficulty) => {
+    switch (difficulty?.toUpperCase()) {
+      case "EASY":
+        return "bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400";
+      case "MEDIUM":
+        return "bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400";
+      case "HARD":
+        return "bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400";
+      default:
+        return "bg-gray-50 dark:bg-gray-900/20 text-gray-600 dark:text-gray-400";
+    }
+  };
+
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -84,43 +125,55 @@ export default function Problems() {
               </tr>
             </thead>
             <tbody>
-              <tr className="border-b border-border hover:bg-accent/30 transition-colors">
-                <td className="px-6 py-4 text-sm text-muted-foreground font-medium">
-                  1
-                </td>
-                <td className="px-6 py-4 text-sm font-semibold text-foreground">
-                  Two Sum
-                </td>
-                <td className="px-6 py-4">
-                  <span className="bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 px-2.5 py-1 rounded-full text-xs font-medium">
-                    Easy
-                  </span>
-                </td>
-                <td className="px-6 py-4 text-sm text-muted-foreground">
-                  49.2%
-                </td>
-                <td className="px-6 py-4 text-right">
-                  <button className="p-1.5 rounded-lg hover:bg-accent text-muted-foreground hover:text-foreground transition-colors">
-                    <MoreHorizontal size={16} />
-                  </button>
-                </td>
-              </tr>
-
-              <tr>
-                <td colSpan={5} className="px-6 py-16 text-center">
-                  <div className="flex flex-col items-center gap-2">
-                    <div className="bg-cyan-50 dark:bg-cyan-900/20 w-12 h-12 rounded-xl flex items-center justify-center mb-2">
-                      <FolderOpen size={24} className="text-cyan-500" />
+              {loading ? (
+                <tr>
+                  <td colSpan={5} className="px-6 py-16 text-center">
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-500 mb-2"></div>
+                      <p className="text-muted-foreground text-sm font-medium">
+                        Loading problems...
+                      </p>
                     </div>
-                    <p className="text-muted-foreground text-sm font-medium">
-                      Problem data will be loaded from the API.
-                    </p>
-                    <p className="text-muted-foreground/60 text-xs">
-                      Connect your backend to see real data here
-                    </p>
-                  </div>
-                </td>
-              </tr>
+                  </td>
+                </tr>
+              ) : problems.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="px-6 py-16 text-center">
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="bg-cyan-50 dark:bg-cyan-900/20 w-12 h-12 rounded-xl flex items-center justify-center mb-2">
+                        <FolderOpen size={24} className="text-cyan-500" />
+                      </div>
+                      <p className="text-muted-foreground text-sm font-medium">
+                        No problems found.
+                      </p>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                problems.map((problem) => (
+                  <tr key={problem.id || problem.ID} className="border-b border-border hover:bg-accent/30 transition-colors">
+                    <td className="px-6 py-4 text-sm text-muted-foreground font-medium">
+                      {problem.id || problem.ID}
+                    </td>
+                    <td className="px-6 py-4 text-sm font-semibold text-foreground">
+                      {problem.title}
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${getDifficultyColor(problem.difficulty)}`}>
+                        {problem.difficulty}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-muted-foreground">
+                      N/A
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <button className="p-1.5 rounded-lg hover:bg-accent text-muted-foreground hover:text-foreground transition-colors">
+                        <MoreHorizontal size={16} />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
@@ -128,3 +181,4 @@ export default function Problems() {
     </div>
   );
 }
+

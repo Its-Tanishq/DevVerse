@@ -66,6 +66,9 @@ public class User implements UserDetails {
     private Boolean isOnline = false;
 
     @Builder.Default
+    private Boolean isPremium = false;
+
+    @Builder.Default
     private Boolean isEnabled = true;
 
     @Builder.Default

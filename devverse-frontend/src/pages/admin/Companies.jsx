@@ -1,5 +1,7 @@
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Building2, Search, Plus, MoreHorizontal } from "lucide-react";
+import apiClient from "../../config/ApiClient";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -7,6 +9,32 @@ const fadeUp = {
 };
 
 export default function Companies() {
+  const [companies, setCompanies] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchCompanies();
+  }, []);
+
+  const fetchCompanies = async () => {
+    try {
+      setLoading(true);
+      const response = await apiClient.get("/problem/company");
+      const data = response.data?.data;
+      if (Array.isArray(data)) {
+        setCompanies(data);
+      } else if (data && data.content) {
+        setCompanies(data.content);
+      } else {
+        setCompanies([]);
+      }
+    } catch (error) {
+      console.error("Failed to fetch companies:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -73,45 +101,57 @@ export default function Companies() {
               </tr>
             </thead>
             <tbody>
-              <tr className="border-b border-border hover:bg-accent/30 transition-colors">
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-3">
-                    <div className="bg-amber-50 dark:bg-amber-900/20 text-amber-500 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold">
-                      G
+              {loading ? (
+                <tr>
+                  <td colSpan={4} className="px-6 py-16 text-center">
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-500 mb-2"></div>
+                      <p className="text-muted-foreground text-sm font-medium">
+                        Loading companies...
+                      </p>
                     </div>
-                    <span className="font-semibold text-foreground text-sm">
-                      Google
-                    </span>
-                  </div>
-                </td>
-                <td className="px-6 py-4 text-sm text-muted-foreground">
-                  142
-                </td>
-                <td className="px-6 py-4 text-sm text-muted-foreground">
-                  Jan 12, 2025
-                </td>
-                <td className="px-6 py-4 text-right">
-                  <button className="p-1.5 rounded-lg hover:bg-accent text-muted-foreground hover:text-foreground transition-colors">
-                    <MoreHorizontal size={16} />
-                  </button>
-                </td>
-              </tr>
-
-              <tr>
-                <td colSpan={4} className="px-6 py-16 text-center">
-                  <div className="flex flex-col items-center gap-2">
-                    <div className="bg-amber-50 dark:bg-amber-900/20 w-12 h-12 rounded-xl flex items-center justify-center mb-2">
-                      <Building2 size={24} className="text-amber-500" />
+                  </td>
+                </tr>
+              ) : companies.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="px-6 py-16 text-center">
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="bg-amber-50 dark:bg-amber-900/20 w-12 h-12 rounded-xl flex items-center justify-center mb-2">
+                        <Building2 size={24} className="text-amber-500" />
+                      </div>
+                      <p className="text-muted-foreground text-sm font-medium">
+                        No companies found.
+                      </p>
                     </div>
-                    <p className="text-muted-foreground text-sm font-medium">
-                      Company data will be loaded from the API.
-                    </p>
-                    <p className="text-muted-foreground/60 text-xs">
-                      Connect your backend to see real data here
-                    </p>
-                  </div>
-                </td>
-              </tr>
+                  </td>
+                </tr>
+              ) : (
+                companies.map((company) => (
+                  <tr key={company.id || company.ID} className="border-b border-border hover:bg-accent/30 transition-colors">
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="bg-amber-50 dark:bg-amber-900/20 text-amber-500 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold uppercase">
+                          {company.name ? company.name.charAt(0) : "?"}
+                        </div>
+                        <span className="font-semibold text-foreground text-sm">
+                          {company.name}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-muted-foreground">
+                      N/A
+                    </td>
+                    <td className="px-6 py-4 text-sm text-muted-foreground">
+                      N/A
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <button className="p-1.5 rounded-lg hover:bg-accent text-muted-foreground hover:text-foreground transition-colors">
+                        <MoreHorizontal size={16} />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

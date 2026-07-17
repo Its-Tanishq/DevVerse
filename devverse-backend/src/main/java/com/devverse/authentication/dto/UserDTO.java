@@ -40,6 +40,7 @@ public class UserDTO {
     private Integer xpPoint = 0;
     private Integer streak = 0;
     private Boolean isOnline = false;
+    private Boolean isPremium = false;
     private Boolean isEnabled = true;
     private String role = Role.USER.name();
     private Instant lastActive = Instant.now();

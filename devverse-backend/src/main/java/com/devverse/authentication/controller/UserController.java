@@ -57,6 +57,11 @@ public class UserController {
         return ResponseEntity.ok(new ApiResponse<>(true, "User fetched successfully", userService.getUserById(id), Instant.now()));
     }
 
+    @GetMapping("/username/{username}")
+    public ResponseEntity<ApiResponse<?>> getUserByUsername(@PathVariable String username) {
+        return ResponseEntity.ok(new ApiResponse<>(true, "User fetched successfully", userService.getUserByUsername(username), Instant.now()));
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<?>> deleteUserById(@PathVariable Long id) {
         userService.deleteUser(id);
