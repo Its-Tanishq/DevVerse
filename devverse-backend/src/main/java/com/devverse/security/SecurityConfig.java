@@ -4,6 +4,7 @@ import com.devverse.config.AppConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -40,7 +41,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth->auth
                         .requestMatchers(AppConstants.AUTH_PUBLIC_URLS).permitAll()
-                        .requestMatchers(org.springframework.http.HttpMethod.GET, AppConstants.GET_PUBLIC_URLS).permitAll()
+                        .requestMatchers(HttpMethod.GET, AppConstants.GET_PUBLIC_URLS).permitAll()
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2 ->

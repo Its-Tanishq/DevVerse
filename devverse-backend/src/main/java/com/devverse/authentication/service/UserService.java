@@ -9,6 +9,7 @@ import com.devverse.authentication.model.Provider;
 import com.devverse.authentication.model.Role;
 import com.devverse.authentication.model.User;
 import com.devverse.authentication.repo.UserRepo;
+import com.devverse.authentication.repo.RefreshTokenRepo;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -31,6 +32,7 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
     private final ActivityLogService activityLogService;
+    private final RefreshTokenRepo refreshTokenRepo;
 
     @Transactional
     public UserDTO createUser(UserDTO userDTO) {
@@ -126,12 +128,15 @@ public class UserService {
     }
 
     @Transactional
-    public void deleteUser(Long id) {
+    public void deleteUser(Long id, String reason) {
         User user = userRepo.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
         
+        // Delete related refresh tokens before deleting the user to avoid foreign key constraint violations
+        refreshTokenRepo.deleteByUser(user);
+        
         activityLogService.logActivity(
-                "User deleted: " + user.getActualUsername(),
+                "User deleted: " + user.getActualUsername() + " - Reason: " + reason,
                 "USER",
                 user.getID(),
                 "CRITICAL",
@@ -139,6 +144,38 @@ public class UserService {
         );
         
         userRepo.delete(user);
+    }
+
+    @Transactional
+    public void toggleBan(Long id, String reason) {
+        User user = userRepo.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
+        user.setIsEnabled(!user.getIsEnabled());
+        userRepo.save(user);
+        
+        activityLogService.logActivity(
+                "User " + (user.getIsEnabled() ? "unbanned" : "banned") + ": " + user.getActualUsername() + " - Reason: " + reason,
+                "USER",
+                user.getID(),
+                "WARNING",
+                user.getIsEnabled() ? "#10b981" : "#ef4444"
+        );
+    }
+
+    @Transactional
+    public void togglePremium(Long id, String reason) {
+        User user = userRepo.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
+        user.setIsPremium(!user.getIsPremium());
+        userRepo.save(user);
+        
+        activityLogService.logActivity(
+                "User premium status changed to " + user.getIsPremium() + ": " + user.getActualUsername() + " - Reason: " + reason,
+                "USER",
+                user.getID(),
+                "INFO",
+                "#f59e0b"
+        );
     }
 
     public PageResponse<UserDTO> getAllUsers(int page, int size) {

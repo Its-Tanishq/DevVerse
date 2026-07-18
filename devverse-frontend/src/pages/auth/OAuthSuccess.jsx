@@ -16,6 +16,13 @@ const OAuthSuccess = () => {
       if (!isRefreshing) {
         setIsRefreshing(true);
         try {
+          const searchParams = new URLSearchParams(window.location.search);
+          if (searchParams.get("error") === "banned") {
+            toast.error("Your account has been banned. Please contact support.");
+            navigate("/signin");
+            return;
+          }
+
           const res = await apiClient.post("/auth/refresh-token");
           const responseLoginData = res.data.data;
           console.log(responseLoginData);
@@ -29,7 +36,8 @@ const OAuthSuccess = () => {
           toast.success("Login success !");
           navigate("/dashboard");
         } catch (error) {
-          toast.error("Error while login!");
+          const errorMessage = error.response?.data?.message || "Error while login!";
+          toast.error(errorMessage);
           console.log(error);
           navigate("/signin");
         } finally {
@@ -39,7 +47,7 @@ const OAuthSuccess = () => {
     }
 
     getAccessToken();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []); 
 
   return (
     <div className="p-10 flex flex-col gap-3 justify-center items-center">

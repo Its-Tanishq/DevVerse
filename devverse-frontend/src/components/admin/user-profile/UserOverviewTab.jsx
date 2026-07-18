@@ -1,9 +1,10 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { 
-  Activity, Award, Code2, Flame, RefreshCw, ExternalLink 
+  Activity, Award, Code2, Flame, RefreshCw, ExternalLink, Edit2, Save, X 
 } from "lucide-react";
 import { GithubIcon, LinkedinIcon } from "./icons";
+import apiClient from "../../../config/ApiClient";
 
 export default function UserOverviewTab({
   user,
@@ -12,8 +13,37 @@ export default function UserOverviewTab({
   acceptedSubmissions = 0,
   totalSubmissions = 0,
   acceptanceRate = 0,
-  onTabChange
+  onTabChange,
+  onUpdateUser
 }) {
+  const [problemStats, setProblemStats] = useState({ EASY: 0, MEDIUM: 0, HARD: 0 });
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      const targetId = user?.id || user?.ID;
+      if (!targetId) return;
+      try {
+        const res = await apiClient.get(`/admin/user/${targetId}/problem-stats`);
+        if (res.data?.data) {
+          setProblemStats(res.data.data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch problem stats", err);
+      }
+    };
+    fetchStats();
+  }, [user]);
+
+  const [isEditingBio, setIsEditingBio] = useState(false);
+  const [editBioContent, setEditBioContent] = useState("");
+
+  const handleSaveBio = () => {
+    if (onUpdateUser) {
+      onUpdateUser({ bio: editBioContent });
+    }
+    setIsEditingBio(false);
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -33,7 +63,7 @@ export default function UserOverviewTab({
               {(user.xpPoint || 0).toLocaleString()}
             </div>
             <div className="text-xs text-muted-foreground mt-1">
-              Level {user.level || Math.floor((user.xpPoint || 0) / 1000) + 1}
+              Level {user.level || 1}
             </div>
           </div>
 
@@ -45,7 +75,11 @@ export default function UserOverviewTab({
             <div className="text-2xl font-black text-foreground">
               {acceptedSubmissions}
             </div>
-            <div className="text-xs text-muted-foreground mt-1">of {totalSubmissions} attempts</div>
+            <div className="text-xs text-muted-foreground mt-1 flex gap-2">
+              <span className="text-green-500">{problemStats.EASY} E</span>
+              <span className="text-yellow-500">{problemStats.MEDIUM} M</span>
+              <span className="text-red-500">{problemStats.HARD} H</span>
+            </div>
           </div>
 
           <div className="bg-card border border-border rounded-2xl p-4 shadow-sm">
@@ -74,9 +108,47 @@ export default function UserOverviewTab({
         </div>
 
         {/* User Bio Card */}
-        <div className="bg-card border border-border rounded-2xl p-6 shadow-sm space-y-3">
-          <h3 className="text-sm font-bold text-foreground uppercase tracking-wider">About & Bio</h3>
-          {user.bio ? (
+        <div className="bg-card border border-border rounded-2xl p-6 shadow-sm space-y-3 relative group">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-bold text-foreground uppercase tracking-wider">About & Bio</h3>
+            {!isEditingBio ? (
+              <button 
+                onClick={() => {
+                  setEditBioContent(user.bio || "");
+                  setIsEditingBio(true);
+                }}
+                className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 hover:bg-accent rounded-lg text-muted-foreground hover:text-foreground"
+                title="Edit Bio"
+              >
+                <Edit2 size={14} />
+              </button>
+            ) : (
+              <div className="flex items-center gap-2">
+                <button 
+                  onClick={() => setIsEditingBio(false)}
+                  className="p-1.5 hover:bg-accent rounded-lg text-muted-foreground hover:text-foreground"
+                >
+                  <X size={14} />
+                </button>
+                <button 
+                  onClick={handleSaveBio}
+                  className="p-1.5 bg-[#7c3aed]/10 text-[#7c3aed] hover:bg-[#7c3aed]/20 rounded-lg flex items-center gap-1 text-xs font-bold"
+                >
+                  <Save size={14} /> Save
+                </button>
+              </div>
+            )}
+          </div>
+          
+          {isEditingBio ? (
+            <textarea
+              value={editBioContent}
+              onChange={(e) => setEditBioContent(e.target.value)}
+              placeholder="Enter user bio..."
+              className="w-full min-h-[100px] p-3 rounded-xl bg-background border border-border text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-[#7c3aed]/50 resize-none"
+              autoFocus
+            />
+          ) : user.bio ? (
             <p className="text-sm text-foreground/90 leading-relaxed whitespace-pre-wrap bg-accent/30 p-4 rounded-xl border border-border/50">
               {user.bio}
             </p>

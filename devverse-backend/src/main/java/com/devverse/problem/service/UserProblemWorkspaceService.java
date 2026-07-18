@@ -11,6 +11,7 @@ import com.devverse.problem.repo.UserProblemWorkspaceRepo;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -84,7 +85,7 @@ public class UserProblemWorkspaceService {
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
 
         if (!existing.getUser().getID().equals(userId) && !user.getRole().equals("ADMIN")) {
-            throw new org.springframework.security.access.AccessDeniedException("You do not have permission to delete this workspace");
+            throw new AccessDeniedException("You do not have permission to delete this workspace");
         }
 
         workspaceRepo.delete(existing);

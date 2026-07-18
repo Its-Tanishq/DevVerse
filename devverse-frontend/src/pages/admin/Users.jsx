@@ -5,9 +5,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
   Users as UsersIcon, Search, MoreHorizontal, Loader2, Filter, 
   Shield, Star, Ban, Trash2, Eye, Activity, Code2, Calendar, 
-  ArrowUpDown, ChevronDown, CheckCircle2, XCircle, Award
+  ArrowUpDown, ChevronDown, CheckCircle2, XCircle, Award, User
 } from "lucide-react";
 import apiClient from "../../config/ApiClient";
+import toast from "react-hot-toast";
+import ActionReasonModal from "../../components/admin/user-profile/ActionReasonModal";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -23,7 +25,14 @@ export default function Users() {
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState("All"); // All, Admin, User
   const [premiumFilter, setPremiumFilter] = useState("All"); // All, Premium, Free
-  const [statusFilter, setStatusFilter] = useState("All"); // All, Active, Banned
+  const [bannedFilter, setBannedFilter] = useState("All"); // All, Active, Banned
+  
+  // Action Modal State
+  const [reasonModalState, setReasonModalState] = useState({
+    isOpen: false,
+    action: null,
+    user: null
+  });
   const [joinDateFilter, setJoinDateFilter] = useState("All"); // All, Recent
   
   // Sorting
@@ -64,7 +73,6 @@ export default function Users() {
           createdAt: u.createdAt || new Date().toISOString(),
           isPremium: u.isPremium || false,
           xpPoint: u.xpPoint || 0,
-          lastActive: u.lastActive || new Date().toISOString(),
           isBanned: u.isEnabled === false
         }));
         
@@ -86,16 +94,41 @@ export default function Users() {
       navigate(`/admin/users/${targetParam}`, { state: { user } });
       return;
     }
-    if (action === 'toggle_premium') {
-      setUsers(prev => prev.map(u => (u.id === targetId || u.ID === targetId) ? { ...u, isPremium: !u.isPremium } : u));
-    } else if (action === 'change_role') {
-      setUsers(prev => prev.map(u => (u.id === targetId || u.ID === targetId) ? { ...u, role: u.role === 'ADMIN' ? 'USER' : 'ADMIN' } : u));
-    } else if (action === 'toggle_ban') {
-      setUsers(prev => prev.map(u => (u.id === targetId || u.ID === targetId) ? { ...u, isBanned: !u.isBanned, isEnabled: u.isBanned } : u));
-    } else if (action === 'delete_account') {
-      if (window.confirm(`Are you sure you want to delete @${user.actualUsername}?`)) {
+    
+    // Intercept with Reason Modal
+    if (action === 'toggle_premium' || action === 'toggle_ban' || action === 'delete_account' || action === 'revoke_sessions') {
+      const modalAction = action === 'toggle_premium' ? 'premium' : action === 'toggle_ban' ? 'ban' : action === 'delete_account' ? 'delete' : 'revoke';
+      setReasonModalState({ isOpen: true, action: modalAction, user });
+      return;
+    }
+  };
+
+  const executeAction = async (reason) => {
+    const { action, user } = reasonModalState;
+    setReasonModalState({ isOpen: false, action: null, user: null });
+    
+    const targetId = user.id || user.ID;
+    
+    try {
+      if (action === 'premium') {
+        await apiClient.patch(`/user/${targetId}/premium?reason=${encodeURIComponent(reason)}`);
+        setUsers(prev => prev.map(u => (u.id === targetId || u.ID === targetId) ? { ...u, isPremium: !u.isPremium } : u));
+        toast.success(user.isPremium ? "Premium removed" : "Premium granted");
+      } else if (action === 'ban') {
+        await apiClient.patch(`/user/${targetId}/ban?reason=${encodeURIComponent(reason)}`);
+        setUsers(prev => prev.map(u => (u.id === targetId || u.ID === targetId) ? { ...u, isBanned: !u.isBanned, isEnabled: u.isBanned } : u));
+        toast.success(user.isBanned ? "User unbanned" : "User banned");
+      } else if (action === 'delete') {
+        await apiClient.delete(`/user/${targetId}?reason=${encodeURIComponent(reason)}`);
         setUsers(prev => prev.filter(u => u.id !== targetId && u.ID !== targetId));
+        toast.success("Account deleted successfully");
+      } else if (action === 'revoke') {
+        await apiClient.delete(`/admin/user/${targetId}/sessions?reason=${encodeURIComponent(reason)}`);
+        toast.success("Active sessions revoked successfully");
       }
+    } catch (error) {
+      console.error("Action failed", error);
+      toast.error("Action failed");
     }
   };
 
@@ -112,9 +145,9 @@ export default function Users() {
       (premiumFilter === "Premium" && user.isPremium) || 
       (premiumFilter === "Free" && !user.isPremium);
       
-    const matchesStatus = statusFilter === "All" || 
-      (statusFilter === "Active" && !user.isBanned) || 
-      (statusFilter === "Banned" && user.isBanned);
+    const matchesStatus = bannedFilter === "All" || 
+      (bannedFilter === "Active" && !user.isBanned) || 
+      (bannedFilter === "Banned" && user.isBanned);
       
       
     let matchesJoinDate = true;
@@ -226,8 +259,8 @@ export default function Users() {
 
           <select 
             className="bg-card border border-border rounded-lg px-3 py-2 text-sm text-foreground outline-none shadow-sm cursor-pointer"
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
+            value={bannedFilter}
+            onChange={(e) => setBannedFilter(e.target.value)}
           >
             <option value="All">All Status</option>
             <option value="Active">Active</option>
@@ -244,12 +277,12 @@ export default function Users() {
           </select>
           
           {/* Clear Filters */}
-          {(roleFilter !== "All" || premiumFilter !== "All" || statusFilter !== "All" || joinDateFilter !== "All") && (
+          {(roleFilter !== "All" || premiumFilter !== "All" || bannedFilter !== "All" || joinDateFilter !== "All") && (
             <button 
               onClick={() => {
                 setRoleFilter("All");
                 setPremiumFilter("All");
-                setStatusFilter("All");
+                setBannedFilter("All");
                 setJoinDateFilter("All");
                 setSearchQuery("");
               }}
@@ -329,8 +362,8 @@ export default function Users() {
                               className="w-10 h-10 rounded-full object-cover shadow-sm ring-2 ring-transparent group-hover:ring-pink-500/20 transition-all"
                             />
                           ) : (
-                            <div className="bg-gradient-to-br from-indigo-500 to-purple-600 text-white w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold shadow-sm uppercase ring-2 ring-transparent group-hover:ring-purple-500/20 transition-all">
-                              {user.actualUsername ? user.actualUsername[0] : "?"}
+                            <div className="bg-accent text-foreground w-10 h-10 rounded-full flex items-center justify-center shadow-sm border border-border group-hover:ring-2 group-hover:ring-purple-500/20 transition-all">
+                              <User size={20} />
                             </div>
                           )}
                         </div>
@@ -460,9 +493,8 @@ export default function Users() {
                   <Star size={15} className="text-amber-500" /> 
                   {dropdownState.user.isPremium ? 'Remove Premium' : 'Make Premium'}
                 </button>
-                <button onClick={() => handleAction('change_role', dropdownState.user)} className="w-full text-left px-4 py-2.5 text-sm text-foreground hover:bg-accent flex items-center gap-2.5 transition-colors">
-                  <Shield size={15} className="text-indigo-500" /> 
-                  {dropdownState.user.role === 'ADMIN' ? 'Demote to User' : 'Promote to Admin'}
+                <button onClick={() => handleAction('revoke_sessions', dropdownState.user)} className="w-full text-left px-4 py-2.5 text-sm text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-900/10 flex items-center gap-2.5 transition-colors">
+                  <XCircle size={15} /> Revoke sessions
                 </button>
               </div>
               <div className="py-1">
@@ -479,6 +511,15 @@ export default function Users() {
         </AnimatePresence>,
         document.body
       )}
+
+      {/* Action Reason Modal */}
+      <ActionReasonModal
+        isOpen={reasonModalState.isOpen}
+        onClose={() => setReasonModalState({ isOpen: false, action: null, user: null })}
+        onConfirm={executeAction}
+        action={reasonModalState.action}
+        user={reasonModalState.user}
+      />
     </div>
   );
 }

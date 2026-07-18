@@ -1,17 +1,13 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { 
-  Shield, Star, Ban, CheckCircle2, Trash2, Mail, Calendar, Clock 
+  Shield, Star, Ban, CheckCircle2, Trash2, Mail, Calendar, Clock, User
 } from "lucide-react";
 
 export default function UserHeroHeader({
   user,
   id,
-  actionLoading,
-  onTogglePremium,
-  onToggleRole,
-  onToggleBan,
-  onDeleteAccount
+  onUpdateUser
 }) {
   return (
     <motion.div
@@ -27,23 +23,25 @@ export default function UserHeroHeader({
         <div className="flex flex-col sm:flex-row sm:items-center gap-5">
           <div className="relative">
             {user.profilePic ? (
-              <img
-                src={user.profilePic}
-                alt={user.actualUsername}
-                className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl object-cover shadow-md ring-4 ring-background border border-border"
-              />
+              <div className="relative group">
+                <img
+                  src={user.profilePic}
+                  alt={user.actualUsername}
+                  className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl object-cover shadow-md ring-4 ring-background border border-border"
+                />
+                <button
+                  onClick={() => onUpdateUser && window.confirm("Reset this user's avatar to default?") && onUpdateUser({ profilePic: null })}
+                  className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl flex items-center justify-center text-white text-xs font-bold"
+                >
+                  Reset Avatar
+                </button>
+              </div>
             ) : (
-              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-600 to-pink-500 text-white flex items-center justify-center text-3xl font-extrabold shadow-md ring-4 ring-background uppercase">
-                {user.actualUsername ? user.actualUsername[0] : (user.username ? user.username[0] : "U")}
+              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-accent text-foreground flex items-center justify-center shadow-md ring-4 ring-background border border-border">
+                <User size={40} />
               </div>
             )}
-            {/* Online Indicator */}
-            <div 
-              className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-4 border-card flex items-center justify-center ${
-                new Date(user.lastActive) > new Date(Date.now() - 3600000) ? 'bg-emerald-500' : 'bg-gray-400 dark:bg-gray-600'
-              }`}
-              title={new Date(user.lastActive) > new Date(Date.now() - 3600000) ? 'Online recently' : 'Offline'}
-            ></div>
+
           </div>
 
           <div className="space-y-2">
@@ -85,69 +83,7 @@ export default function UserHeroHeader({
                 <Calendar size={14} className="text-muted-foreground/70" />
                 Joined {new Date(user.createdAt || Date.now()).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
               </span>
-              <span className="flex items-center gap-1.5">
-                <Clock size={14} className="text-muted-foreground/70" />
-                Last seen {new Date(user.lastActive || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-              </span>
             </div>
-          </div>
-        </div>
-
-        {/* Quick Action Toolbar Divider & Buttons */}
-        <div className="border-t border-border/70 pt-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-2 text-xs font-extrabold text-muted-foreground uppercase tracking-wider">
-            <Shield size={14} className="text-[#7c3aed]" /> Quick Admin Controls
-          </div>
-
-          <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-3">
-            <button
-              onClick={onTogglePremium}
-              disabled={actionLoading === 'premium'}
-              className={`px-4 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-sm ${
-                user.isPremium 
-                  ? 'bg-card hover:bg-accent border border-amber-500/30 text-amber-600 dark:text-amber-400' 
-                  : 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white hover:shadow-md'
-              }`}
-            >
-              <Star size={14} className={user.isPremium ? 'fill-amber-500' : ''} />
-              <span>{user.isPremium ? 'Remove Premium' : 'Make Premium'}</span>
-            </button>
-
-            <button
-              onClick={onToggleRole}
-              disabled={actionLoading === 'role'}
-              className={`px-4 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-sm ${
-                user.role === 'ADMIN'
-                  ? 'bg-card hover:bg-accent border border-indigo-500/30 text-indigo-500'
-                  : 'bg-card hover:bg-accent border border-border text-foreground hover:border-[#7c3aed]/40'
-              }`}
-            >
-              <Shield size={14} className="text-indigo-500" />
-              <span>{user.role === 'ADMIN' ? 'Demote to User' : 'Promote to Admin'}</span>
-            </button>
-
-            <button
-              onClick={onToggleBan}
-              disabled={actionLoading === 'ban'}
-              className={`px-4 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-sm ${
-                user.isBanned || user.isEnabled === false
-                  ? 'bg-emerald-500 hover:bg-emerald-600 text-white hover:shadow-md' 
-                  : 'bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-600 dark:text-amber-400'
-              }`}
-            >
-              {user.isBanned || user.isEnabled === false ? <CheckCircle2 size={14} /> : <Ban size={14} />}
-              <span>{user.isBanned || user.isEnabled === false ? 'Unban User' : 'Ban User'}</span>
-            </button>
-
-            <button
-              onClick={onDeleteAccount}
-              disabled={actionLoading === 'delete'}
-              className="px-4 py-2.5 rounded-xl text-xs font-bold bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 hover:border-red-500/50 text-red-600 dark:text-red-400 flex items-center justify-center gap-2 transition-all shadow-sm"
-              title="Delete Account"
-            >
-              <Trash2 size={14} />
-              <span>Delete Account</span>
-            </button>
           </div>
         </div>
       </div>

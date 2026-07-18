@@ -9,4 +9,5 @@ import java.util.List;
 @Repository
 public interface ActivityLogRepo extends JpaRepository<ActivityLog, Long> {
     List<ActivityLog> findTop10ByOrderByCreatedAtDesc();
+    List<ActivityLog> findByEntityTypeAndEntityIdOrderByCreatedAtDesc(String entityType, Long entityId);
 }

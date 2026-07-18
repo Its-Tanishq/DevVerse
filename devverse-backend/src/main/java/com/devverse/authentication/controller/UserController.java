@@ -62,10 +62,25 @@ public class UserController {
         return ResponseEntity.ok(new ApiResponse<>(true, "User fetched successfully", userService.getUserByUsername(username), Instant.now()));
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse<?>> deleteUserById(@PathVariable Long id) {
-        userService.deleteUser(id);
+    public ResponseEntity<ApiResponse<?>> deleteUserById(@PathVariable Long id, @RequestParam String reason) {
+        userService.deleteUser(id, reason);
         return ResponseEntity.ok(new ApiResponse<>(true, "User deleted successfully", null, Instant.now()));
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PatchMapping("/{id}/ban")
+    public ResponseEntity<ApiResponse<?>> toggleUserBan(@PathVariable Long id, @RequestParam String reason) {
+        userService.toggleBan(id, reason);
+        return ResponseEntity.ok(new ApiResponse<>(true, "User ban status toggled", null, Instant.now()));
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PatchMapping("/{id}/premium")
+    public ResponseEntity<ApiResponse<?>> toggleUserPremium(@PathVariable Long id, @RequestParam String reason) {
+        userService.togglePremium(id, reason);
+        return ResponseEntity.ok(new ApiResponse<>(true, "User premium status toggled", null, Instant.now()));
     }
 
 }

@@ -62,8 +62,6 @@ public class User implements UserDetails {
     @Builder.Default
     private Integer streak = 0;
 
-    @Builder.Default
-    private Boolean isOnline = false;
 
     @Builder.Default
     private Boolean isPremium = false;
@@ -73,8 +71,6 @@ public class User implements UserDetails {
 
     @Builder.Default
     private String role = Role.USER.name();
-
-    private Instant lastActive;
 
     private Instant createdAt;
 
@@ -90,7 +86,6 @@ public class User implements UserDetails {
     protected void onCreate() {
         if (createdAt == null) createdAt = Instant.now();
         updatedAt = Instant.now();
-        lastActive = Instant.now();
     }
 
     @PreUpdate

@@ -10,6 +10,7 @@ import com.devverse.problem.repo.DiscussionRepo;
 import com.devverse.problem.repo.ProblemRepo;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -89,7 +90,7 @@ public class DiscussionService {
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
 
         if (!discussion.getUser().getID().equals(userId) && !user.getRole().equals("ADMIN")) {
-            throw new org.springframework.security.access.AccessDeniedException("You do not have permission to delete this discussion");
+            throw new AccessDeniedException("You do not have permission to delete this discussion");
         }
 
         discussionsRepo.delete(discussion);

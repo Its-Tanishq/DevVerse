@@ -102,6 +102,11 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
             }
         }
 
+        if (!user.getIsEnabled()) {
+            response.sendRedirect(frontendSuccessUrl + "?error=banned");
+            return;
+        }
+
         String jti = UUID.randomUUID().toString();
 
         var refreshTokenDB = RefreshToken.builder()

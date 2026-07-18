@@ -1,7 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { 
-  RefreshCw, Check, Cpu, HardDrive 
+  RefreshCw, Check, Cpu, HardDrive, Code2, AlertCircle, Filter, X
 } from "lucide-react";
 
 export default function UserSubmissionsTab({
@@ -10,35 +10,95 @@ export default function UserSubmissionsTab({
   onRefresh,
   onSelectSubmission
 }) {
+  const [filterLang, setFilterLang] = useState("ALL");
+  const [filterStatus, setFilterStatus] = useState("ALL");
+
+  const filteredSubmissions = submissions.filter(sub => {
+    const langMatch = filterLang === "ALL" || sub.language === filterLang;
+    const statusMatch = filterStatus === "ALL" || 
+      (filterStatus === "ACCEPTED" && sub.status === "ACCEPTED") ||
+      (filterStatus === "REJECTED" && sub.status !== "ACCEPTED");
+    return langMatch && statusMatch;
+  });
+
+  const languages = ["ALL", ...new Set(submissions.map(s => s.language))];
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm"
     >
-      <div className="p-5 border-b border-border flex items-center justify-between">
+      <div className="p-5 border-b border-border flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h3 className="font-bold text-foreground">All Submissions ({submissions.length})</h3>
+          <h3 className="font-bold text-foreground">All Submissions ({filteredSubmissions.length})</h3>
           <p className="text-xs text-muted-foreground mt-0.5">Click any row to inspect the submitted source code</p>
         </div>
-        <button 
-          onClick={onRefresh}
-          disabled={loadingSubmissions}
-          className="p-2 rounded-lg bg-accent text-muted-foreground hover:text-foreground transition-colors"
-          title="Refresh submissions"
-        >
-          <RefreshCw size={15} className={loadingSubmissions ? "animate-spin" : ""} />
-        </button>
+        
+        <div className="flex items-center gap-2">
+          <select 
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+            className="bg-accent/50 border border-border text-xs rounded-lg px-3 py-1.5 focus:outline-none"
+          >
+            <option value="ALL">All Status</option>
+            <option value="ACCEPTED">Accepted Only</option>
+            <option value="REJECTED">Rejected Only</option>
+          </select>
+
+          <select 
+            value={filterLang}
+            onChange={(e) => setFilterLang(e.target.value)}
+            className="bg-accent/50 border border-border text-xs rounded-lg px-3 py-1.5 focus:outline-none"
+          >
+            {languages.map(lang => (
+              <option key={lang} value={lang}>{lang === "ALL" ? "All Languages" : lang}</option>
+            ))}
+          </select>
+
+          {(filterStatus !== "ALL" || filterLang !== "ALL") && (
+            <button
+              onClick={() => { setFilterStatus("ALL"); setFilterLang("ALL"); }}
+              className="p-1.5 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
+              title="Clear filters"
+            >
+              <X size={15} />
+            </button>
+          )}
+
+          <div className="w-px h-6 bg-border mx-1"></div>
+
+          <button 
+            onClick={onRefresh}
+            disabled={loadingSubmissions}
+            className="p-1.5 rounded-lg bg-accent text-muted-foreground hover:text-foreground transition-colors"
+            title="Refresh submissions"
+          >
+            <RefreshCw size={15} className={loadingSubmissions ? "animate-spin" : ""} />
+          </button>
+        </div>
       </div>
 
       {loadingSubmissions ? (
-        <div className="py-16 flex flex-col items-center justify-center text-muted-foreground gap-3">
-          <RefreshCw size={24} className="animate-spin text-[#7c3aed]" />
-          <span className="text-sm">Loading submission logs...</span>
+        <div className="py-24 flex flex-col items-center justify-center text-muted-foreground gap-3">
+          <RefreshCw size={28} className="animate-spin text-[#7c3aed]" />
+          <span className="text-sm font-medium">Loading submission logs...</span>
         </div>
       ) : submissions.length === 0 ? (
-        <div className="py-16 text-center text-muted-foreground text-sm">
-          No problem submissions found for this user account.
+        <div className="py-24 flex flex-col items-center justify-center text-center">
+          <div className="w-16 h-16 bg-accent rounded-full flex items-center justify-center mb-4 text-muted-foreground">
+            <Code2 size={32} />
+          </div>
+          <h4 className="text-foreground font-bold mb-1">No Submissions Yet</h4>
+          <p className="text-muted-foreground text-sm max-w-sm">This user hasn't submitted any solutions to problems yet. Once they do, their code and verdicts will appear here.</p>
+        </div>
+      ) : filteredSubmissions.length === 0 ? (
+        <div className="py-24 flex flex-col items-center justify-center text-center">
+          <div className="w-16 h-16 bg-accent rounded-full flex items-center justify-center mb-4 text-muted-foreground">
+            <Filter size={32} />
+          </div>
+          <h4 className="text-foreground font-bold mb-1">No Matches Found</h4>
+          <p className="text-muted-foreground text-sm max-w-sm">Try adjusting your filters to see more submissions.</p>
         </div>
       ) : (
         <div className="overflow-x-auto">
@@ -56,7 +116,7 @@ export default function UserSubmissionsTab({
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {submissions.map((sub) => (
+              {filteredSubmissions.map((sub) => (
                 <tr 
                   key={sub.id || sub.ID}
                   onClick={() => onSelectSubmission && onSelectSubmission(sub)}

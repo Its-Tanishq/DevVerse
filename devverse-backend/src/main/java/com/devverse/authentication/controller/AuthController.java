@@ -90,14 +90,13 @@ public class AuthController {
 
             authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginRequest.email(), loginRequest.password()));
 
+        } catch (DisabledException e) {
+            throw new DisabledException("Your account has been banned. Please contact support.");
         } catch (AuthenticationException e) {
             throw new InvalidCredentialsException("Invalid email or password");
         }
 
         UserDTO userDTO = userService.getUserByEmail(loginRequest.email());
-        if (!userDTO.getIsEnabled())
-            throw new DisabledException("User is disabled");
-
         User user = modelMapper.map(userDTO, User.class);
 
         String jti = UUID.randomUUID().toString();
@@ -157,6 +156,10 @@ public class AuthController {
         refreshTokenRepo.save(refreshTokenDB);
 
         User user = refreshTokenDB.getUser();
+        
+        if (!user.getIsEnabled()) {
+            throw new DisabledException("Your account has been banned. Please contact support.");
+        }
 
         var newRefreshTokenDB = RefreshToken.builder()
                 .jti(newJti)

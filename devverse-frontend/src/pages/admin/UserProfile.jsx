@@ -13,6 +13,7 @@ import UserSubmissionsTab from "../../components/admin/user-profile/UserSubmissi
 import UserSecurityTab from "../../components/admin/user-profile/UserSecurityTab";
 import UserConnectionsTab from "../../components/admin/user-profile/UserConnectionsTab";
 import SubmissionInspectModal from "../../components/admin/user-profile/SubmissionInspectModal";
+import ActionReasonModal from "../../components/admin/user-profile/ActionReasonModal";
 
 export default function UserProfile() {
   const { id } = useParams();
@@ -33,6 +34,12 @@ export default function UserProfile() {
 
   // Action loaders
   const [actionLoading, setActionLoading] = useState(null);
+  
+  // Action Reason Modal State
+  const [reasonModalState, setReasonModalState] = useState({
+    isOpen: false,
+    action: null // 'ban' | 'premium' | 'delete'
+  });
 
   useEffect(() => {
     if (user) {
@@ -102,43 +109,39 @@ export default function UserProfile() {
     }
   };
 
-  // Quick action handlers
-  const handleToggleBan = async () => {
-    if (!user) return;
-    const newBannedState = !user.isBanned;
-    setActionLoading('ban');
-    try {
-      setUser(prev => ({ ...prev, isBanned: newBannedState, isEnabled: !newBannedState }));
-      toast.success(newBannedState ? "User has been banned" : "User has been unbanned");
-    } catch (err) {
-      toast.error("Action failed");
-      setUser(prev => ({ ...prev, isBanned: !newBannedState, isEnabled: newBannedState }));
-    } finally {
-      setActionLoading(null);
-    }
-  };
+  // Quick action handlers (triggers modal)
+  const handleToggleBan = () => setReasonModalState({ isOpen: true, action: 'ban' });
+  const handleTogglePremium = () => setReasonModalState({ isOpen: true, action: 'premium' });
+  const handleDeleteAccount = () => setReasonModalState({ isOpen: true, action: 'delete' });
+  const handleRevokeSessions = () => setReasonModalState({ isOpen: true, action: 'revoke' });
 
-  const handleTogglePremium = async () => {
-    if (!user) return;
-    const newPremiumState = !user.isPremium;
-    setActionLoading('premium');
-    try {
-      setUser(prev => ({ ...prev, isPremium: newPremiumState }));
-      toast.success(newPremiumState ? "User upgraded to Premium" : "User downgraded to Free Tier");
-    } catch (err) {
-      toast.error("Action failed");
-    } finally {
-      setActionLoading(null);
-    }
-  };
+  // Actual API execution
+  const executeAction = async (reason) => {
+    const { action } = reasonModalState;
+    setReasonModalState({ isOpen: false, action: null });
+    setActionLoading(action);
 
-  const handleToggleRole = async () => {
-    if (!user) return;
-    const newRole = user.role === 'ADMIN' ? 'USER' : 'ADMIN';
-    setActionLoading('role');
+    const targetId = user?.id || user?.ID || id;
+
     try {
-      setUser(prev => ({ ...prev, role: newRole }));
-      toast.success(`Role updated to ${newRole}`);
+      if (action === 'ban') {
+        const newBannedState = !user.isBanned;
+        await apiClient.patch(`/user/${targetId}/ban?reason=${encodeURIComponent(reason)}`);
+        setUser(prev => ({ ...prev, isBanned: newBannedState, isEnabled: !newBannedState }));
+        toast.success(newBannedState ? "User has been banned" : "User has been unbanned");
+      } else if (action === 'premium') {
+        const newPremiumState = !user.isPremium;
+        await apiClient.patch(`/user/${targetId}/premium?reason=${encodeURIComponent(reason)}`);
+        setUser(prev => ({ ...prev, isPremium: newPremiumState }));
+        toast.success(newPremiumState ? "User upgraded to Premium" : "User downgraded to Free Tier");
+      } else if (action === 'delete') {
+        await apiClient.delete(`/user/${targetId}?reason=${encodeURIComponent(reason)}`);
+        toast.success("Account deleted successfully");
+        navigate("/admin/users");
+      } else if (action === 'revoke') {
+        await apiClient.delete(`/admin/user/${targetId}/sessions?reason=${encodeURIComponent(reason)}`);
+        toast.success("All active sessions revoked successfully");
+      }
     } catch (err) {
       toast.error("Action failed");
     } finally {
@@ -146,18 +149,15 @@ export default function UserProfile() {
     }
   };
 
-  const handleDeleteAccount = async () => {
-    if (!window.confirm(`Are you sure you want to permanently delete account @${user?.actualUsername}? This action cannot be undone.`)) {
-      return;
-    }
-    setActionLoading('delete');
+  const handleUpdateUser = async (updates) => {
     try {
-      await apiClient.delete(`/user/${user?.id || user?.ID || id}`);
-      toast.success("Account deleted successfully");
-      navigate("/admin/users");
+      const res = await apiClient.patch(`/admin/user/${user?.id || user?.ID || id}/moderation`, updates);
+      if (res.data?.data) {
+        setUser(res.data.data);
+        toast.success("User profile updated");
+      }
     } catch (err) {
-      toast.error("Failed to delete account");
-      setActionLoading(null);
+      toast.error("Failed to update user");
     }
   };
 
@@ -222,11 +222,7 @@ export default function UserProfile() {
       <UserHeroHeader
         user={user}
         id={id}
-        actionLoading={actionLoading}
-        onTogglePremium={handleTogglePremium}
-        onToggleRole={handleToggleRole}
-        onToggleBan={handleToggleBan}
-        onDeleteAccount={handleDeleteAccount}
+        onUpdateUser={handleUpdateUser}
       />
 
       {/* Tabs Bar */}
@@ -273,10 +269,11 @@ export default function UserProfile() {
               user={user}
               submissions={submissions}
               loadingSubmissions={loadingSubmissions}
-              acceptedSubmissions={acceptedSubmissions}
-              totalSubmissions={totalSubmissions}
-              acceptanceRate={acceptanceRate}
+              acceptedSubmissions={submissions.filter(s => s.status === 'ACCEPTED').length}
+              totalSubmissions={submissions.length}
+              acceptanceRate={submissions.length ? Math.round((submissions.filter(s => s.status === 'ACCEPTED').length / submissions.length) * 100) : 0}
               onTabChange={setActiveTab}
+              onUpdateUser={handleUpdateUser}
             />
           )}
 
@@ -296,7 +293,9 @@ export default function UserProfile() {
               user={user}
               id={id}
               onToggleBan={handleToggleBan}
-              onToggleRole={handleToggleRole}
+              onTogglePremium={handleTogglePremium}
+              onDeleteAccount={handleDeleteAccount}
+              onRevokeSessions={handleRevokeSessions}
             />
           )}
 
@@ -313,6 +312,15 @@ export default function UserProfile() {
       <SubmissionInspectModal
         submission={selectedSubmission}
         onClose={() => setSelectedSubmission(null)}
+      />
+
+      {/* Action Reason Modal */}
+      <ActionReasonModal 
+        isOpen={reasonModalState.isOpen}
+        onClose={() => setReasonModalState({ isOpen: false, action: null })}
+        onConfirm={executeAction}
+        action={reasonModalState.action}
+        user={user}
       />
     </div>
   );

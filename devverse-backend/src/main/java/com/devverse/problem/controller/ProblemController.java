@@ -2,6 +2,7 @@ package com.devverse.problem.controller;
 
 import com.devverse.common.ApiResponse;
 import com.devverse.problem.dto.ProblemDTO;
+import com.devverse.problem.model.Difficulty;
 import com.devverse.problem.service.ProblemService;
 import com.devverse.problem.service.SubmissionService;
 import com.devverse.authentication.service.UserService;
@@ -46,7 +47,7 @@ public class ProblemController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<?>> getProblems(
-            @RequestParam(required = false) com.devverse.problem.model.Difficulty difficulty,
+            @RequestParam(required = false) Difficulty difficulty,
             @RequestParam(required = false) String tag,
             @RequestParam(required = false) String company,
             @RequestParam(required = false) String status,
