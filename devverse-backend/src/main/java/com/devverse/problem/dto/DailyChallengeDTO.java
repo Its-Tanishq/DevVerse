@@ -21,4 +21,6 @@ public class DailyChallengeDTO {
     private LocalDate date;
 
     private Instant createdAt;
+    
+    private ProblemDTO problems;
 }

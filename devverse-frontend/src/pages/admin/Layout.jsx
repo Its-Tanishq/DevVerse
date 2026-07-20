@@ -36,9 +36,9 @@ export default function Layout() {
   ];
 
   return (
-    <div className="h-[calc(100vh-4.5rem)] flex">
+    <div className="flex min-h-[calc(100vh-4.5rem)]">
       {/* Sidebar */}
-      <aside className="w-[280px] shrink-0 border-r border-border hidden lg:flex flex-col bg-card/40">
+      <aside className="w-[280px] shrink-0 border-r border-border hidden lg:flex flex-col bg-card/40 sticky top-[4.5rem] h-[calc(100vh-4.5rem)]">
         {/* Sidebar header */}
         <div className="p-6 pb-4">
           <div className="flex items-center gap-3 mb-1">
@@ -61,7 +61,7 @@ export default function Layout() {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 px-3 py-2 space-y-1">
+        <nav className="flex-1 px-3 py-2 space-y-1 overflow-y-auto custom-scrollbar">
           {links.map((item, idx) => {
             const isActive = item.end
               ? location.pathname === item.path
@@ -158,7 +158,7 @@ export default function Layout() {
       </div>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-auto pb-20 lg:pb-0">
+      <main className="flex-1 pb-20 lg:pb-0">
         <div className="w-[90%] max-w-6xl mx-auto pt-8 pb-12">
           <Outlet />
         </div>

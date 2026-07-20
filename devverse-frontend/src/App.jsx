@@ -18,6 +18,7 @@ import UserProfile from "./pages/admin/UserProfile";
 import Problems from "./pages/admin/Problems";
 import Companies from "./pages/admin/Companies";
 import TestCases from "./pages/admin/TestCases";
+import DailyChallengesAdmin from "./pages/admin/DailyChallenges";
 
 function UserLayout() {
   const isLoggedIn = useAuth((state) => state.authStatus);
@@ -60,6 +61,7 @@ function App() {
             <Route path="problems" element={<Problems />} />
             <Route path="companies" element={<Companies />} />
             <Route path="testcases" element={<TestCases />} />
+            <Route path="daily-challenges" element={<DailyChallengesAdmin />} />
           </Route>
 
           {/* Protected Routes: Only accessible when logged in */}

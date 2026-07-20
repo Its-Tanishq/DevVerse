@@ -36,4 +36,7 @@ public interface ProblemRepo extends JpaRepository<Problem, Long> {
             @Param("status") String status,
             @Param("userId") Long userId,
             Pageable pageable);
+
+    @Query(value = "SELECT * FROM problems p WHERE p.id NOT IN (SELECT dc.problems_id FROM daily_challenges dc) ORDER BY RANDOM() LIMIT 1", nativeQuery = true)
+    Optional<Problem> findRandomUnusedProblem();
 }

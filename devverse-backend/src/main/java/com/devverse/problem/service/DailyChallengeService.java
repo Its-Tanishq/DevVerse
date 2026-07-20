@@ -93,4 +93,29 @@ public class DailyChallengeService {
                 .orElseThrow(() -> new ResourceNotFoundException("DailyChallenge not found for date: " + date));
         return modelMapper.map(dailyChallenge, DailyChallengeDTO.class);
     }
+
+    @Transactional
+    public DailyChallengeDTO autoAssign(LocalDate date) {
+        if (dailyChallengeRepo.findByDate(date).isPresent()) {
+            throw new IllegalArgumentException("Daily challenge already exists for date: " + date);
+        }
+
+        Problem randomProblem = problemsRepo.findRandomUnusedProblem()
+                .orElseThrow(() -> new ResourceNotFoundException("No unused problems available for auto-assignment"));
+
+        DailyChallenge dailyChallenge = DailyChallenge.builder()
+                .problems(randomProblem)
+                .date(date)
+                .build();
+
+        DailyChallenge saved = dailyChallengeRepo.save(dailyChallenge);
+        return modelMapper.map(saved, DailyChallengeDTO.class);
+    }
+
+    public List<DailyChallengeDTO> getSchedule(LocalDate startDate, LocalDate endDate) {
+        List<DailyChallenge> challenges = dailyChallengeRepo.findByDateBetween(startDate, endDate);
+        return challenges.stream()
+                .map(challenge -> modelMapper.map(challenge, DailyChallengeDTO.class))
+                .collect(Collectors.toList());
+    }
 }

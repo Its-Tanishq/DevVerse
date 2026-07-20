@@ -61,4 +61,17 @@ public class DailyChallengeController {
     public ResponseEntity<ApiResponse<?>> getDailyChallengeByDate(@PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
         return ResponseEntity.ok(new ApiResponse<>(true, "Daily challenge fetched successfully", dailyChallengeService.getDailyChallengeByDate(date), Instant.now()));
     }
+
+    @PostMapping("/auto-assign")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<?>> autoAssignDailyChallenge(@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResponse<>(true, "Daily challenge auto-assigned successfully", dailyChallengeService.autoAssign(date), Instant.now()));
+    }
+
+    @GetMapping("/schedule")
+    public ResponseEntity<ApiResponse<?>> getSchedule(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+        return ResponseEntity.ok(new ApiResponse<>(true, "Daily challenge schedule fetched successfully", dailyChallengeService.getSchedule(startDate, endDate), Instant.now()));
+    }
 }
