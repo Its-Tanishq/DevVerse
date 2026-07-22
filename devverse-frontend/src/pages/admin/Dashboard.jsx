@@ -39,13 +39,6 @@ const statCardsMeta = [
     color: "#f59e0b",
     bg: "bg-amber-50 dark:bg-amber-900/20",
   },
-  {
-    label: "Test Cases",
-    key: "totalTestCases",
-    icon: TerminalSquare,
-    color: "#10b981",
-    bg: "bg-emerald-50 dark:bg-emerald-900/20",
-  },
 ];
 
 const quickLinks = [
@@ -72,14 +65,6 @@ const quickLinks = [
     icon: Building2,
     color: "#f59e0b",
     bg: "bg-amber-50 dark:bg-amber-900/20",
-  },
-  {
-    title: "Manage Test Cases",
-    description: "Configure test cases for problems",
-    path: "/admin/testcases",
-    icon: TerminalSquare,
-    color: "#10b981",
-    bg: "bg-emerald-50 dark:bg-emerald-900/20",
   },
   {
     title: "Daily Challenges",

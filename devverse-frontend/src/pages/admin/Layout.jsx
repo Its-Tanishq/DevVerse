@@ -11,6 +11,7 @@ import {
   ChevronRight,
   CalendarClock,
   Zap,
+  Tag,
 } from "lucide-react";
 
 export default function Layout() {
@@ -30,8 +31,8 @@ export default function Layout() {
     { name: "Dashboard", path: "/admin", icon: LayoutDashboard, end: true, color: "#7c3aed", bg: "bg-[#F2F1FE] dark:bg-[#7c3aed]/15" },
     { name: "Users", path: "/admin/users", icon: Users, color: "#ec4899", bg: "bg-pink-50 dark:bg-pink-900/20" },
     { name: "Problems", path: "/admin/problems", icon: FolderOpen, color: "#06b6d4", bg: "bg-cyan-50 dark:bg-cyan-900/20" },
+    { name: "Tags", path: "/admin/tags", icon: Tag, color: "#3b82f6", bg: "bg-blue-50 dark:bg-blue-900/20" },
     { name: "Companies", path: "/admin/companies", icon: Building2, color: "#f59e0b", bg: "bg-amber-50 dark:bg-amber-900/20" },
-    { name: "Test Cases", path: "/admin/testcases", icon: TerminalSquare, color: "#10b981", bg: "bg-emerald-50 dark:bg-emerald-900/20" },
     { name: "Daily Challenges", path: "/admin/daily-challenges", icon: CalendarClock, color: "#8b5cf6", bg: "bg-violet-50 dark:bg-violet-900/20" },
   ];
 

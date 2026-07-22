@@ -85,13 +85,19 @@ public class TagsService {
 
     public List<TagsDTO> getAllTags() {
         return tagsRepo.findAll().stream()
-                .map(tag -> modelMapper.map(tag, TagsDTO.class))
+                .map(tag -> {
+                    TagsDTO dto = modelMapper.map(tag, TagsDTO.class);
+                    dto.setProblemCount(problemsRepo.countByTags(tag));
+                    return dto;
+                })
                 .collect(Collectors.toList());
     }
 
     public TagsDTO getTagById(Long id) {
         Tag tag = tagsRepo.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Tag with id " + id + " not found"));
-        return modelMapper.map(tag, TagsDTO.class);
+        TagsDTO dto = modelMapper.map(tag, TagsDTO.class);
+        dto.setProblemCount(problemsRepo.countByTags(tag));
+        return dto;
     }
 }

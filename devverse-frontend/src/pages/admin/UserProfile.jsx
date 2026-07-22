@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
-  ArrowLeft, User, Shield, Lock, AlertTriangle, Globe, RefreshCw, Code2 
+  ArrowLeft, User, Shield, Lock, AlertTriangle, Globe, RefreshCw, Code2, Trash2, Ban, Star, XCircle
 } from "lucide-react";
 import apiClient from "../../config/ApiClient";
 import toast from "react-hot-toast";
@@ -13,7 +13,7 @@ import UserSubmissionsTab from "../../components/admin/user-profile/UserSubmissi
 import UserSecurityTab from "../../components/admin/user-profile/UserSecurityTab";
 import UserConnectionsTab from "../../components/admin/user-profile/UserConnectionsTab";
 import SubmissionInspectModal from "../../components/admin/user-profile/SubmissionInspectModal";
-import ActionReasonModal from "../../components/admin/user-profile/ActionReasonModal";
+import ActionReasonModal from "../../components/common/ActionReasonModal";
 
 export default function UserProfile() {
   const { id } = useParams();
@@ -315,13 +315,54 @@ export default function UserProfile() {
       />
 
       {/* Action Reason Modal */}
-      <ActionReasonModal 
-        isOpen={reasonModalState.isOpen}
-        onClose={() => setReasonModalState({ isOpen: false, action: null })}
-        onConfirm={executeAction}
-        action={reasonModalState.action}
-        user={user}
-      />
+      {/* Action Reason Modal */}
+      {(() => {
+        if (!user || !reasonModalState.action) return null;
+        const details = {
+          delete: {
+            title: "Delete Account",
+            icon: <Trash2 size={24} className="text-red-500" />,
+            colorClass: "bg-red-500/10 text-red-500",
+            buttonColor: "bg-red-600 hover:bg-red-700 text-white",
+            description: `You are about to permanently delete the account of @${user.actualUsername || user.username}. This action cannot be undone.`,
+          },
+          ban: {
+            title: user.isBanned || user.isEnabled === false ? "Unban Account" : "Ban Account",
+            icon: <Ban size={24} className="text-orange-500" />,
+            colorClass: "bg-orange-500/10 text-orange-500",
+            buttonColor: "bg-orange-600 hover:bg-orange-700 text-white",
+            description: `You are about to ${user.isBanned || user.isEnabled === false ? 'unban' : 'ban'} the account of @${user.actualUsername || user.username}.`,
+          },
+          premium: {
+            title: user.isPremium ? "Remove Premium Status" : "Grant Premium Status",
+            icon: <Star size={24} className="text-indigo-500" />,
+            colorClass: "bg-indigo-500/10 text-indigo-500",
+            buttonColor: "bg-indigo-600 hover:bg-indigo-700 text-white",
+            description: `You are about to ${user.isPremium ? 'remove premium from' : 'grant premium to'} the account of @${user.actualUsername || user.username}.`,
+          },
+          revoke: {
+            title: "Revoke Active Sessions",
+            icon: <XCircle size={24} className="text-orange-500" />,
+            colorClass: "bg-orange-500/10 text-orange-500",
+            buttonColor: "bg-orange-600 hover:bg-orange-700 text-white",
+            description: `You are about to revoke all active sessions for @${user.actualUsername || user.username}. They will be logged out immediately from all devices.`,
+          }
+        }[reasonModalState.action];
+
+        return (
+          <ActionReasonModal 
+            isOpen={reasonModalState.isOpen}
+            onClose={() => setReasonModalState({ isOpen: false, action: null })}
+            onConfirm={executeAction}
+            title={details?.title}
+            icon={details?.icon}
+            description={details?.description}
+            colorClass={details?.colorClass}
+            buttonColor={details?.buttonColor}
+            confirmText="Confirm Action"
+          />
+        );
+      })()}
     </div>
   );
 }

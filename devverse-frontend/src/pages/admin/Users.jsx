@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import apiClient from "../../config/ApiClient";
 import toast from "react-hot-toast";
-import ActionReasonModal from "../../components/admin/user-profile/ActionReasonModal";
+import ActionReasonModal from "../../components/common/ActionReasonModal";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -513,13 +513,54 @@ export default function Users() {
       )}
 
       {/* Action Reason Modal */}
-      <ActionReasonModal
-        isOpen={reasonModalState.isOpen}
-        onClose={() => setReasonModalState({ isOpen: false, action: null, user: null })}
-        onConfirm={executeAction}
-        action={reasonModalState.action}
-        user={reasonModalState.user}
-      />
+      {(() => {
+        const u = reasonModalState.user;
+        if (!u) return null;
+        const details = {
+          delete: {
+            title: "Delete Account",
+            icon: <Trash2 size={24} className="text-red-500" />,
+            colorClass: "bg-red-500/10 text-red-500",
+            buttonColor: "bg-red-600 hover:bg-red-700 text-white",
+            description: `You are about to permanently delete the account of @${u.actualUsername || u.username}. This action cannot be undone.`,
+          },
+          ban: {
+            title: u.isBanned || u.isEnabled === false ? "Unban Account" : "Ban Account",
+            icon: <Ban size={24} className="text-orange-500" />,
+            colorClass: "bg-orange-500/10 text-orange-500",
+            buttonColor: "bg-orange-600 hover:bg-orange-700 text-white",
+            description: `You are about to ${u.isBanned || u.isEnabled === false ? 'unban' : 'ban'} the account of @${u.actualUsername || u.username}.`,
+          },
+          premium: {
+            title: u.isPremium ? "Remove Premium Status" : "Grant Premium Status",
+            icon: <Star size={24} className="text-indigo-500" />,
+            colorClass: "bg-indigo-500/10 text-indigo-500",
+            buttonColor: "bg-indigo-600 hover:bg-indigo-700 text-white",
+            description: `You are about to ${u.isPremium ? 'remove premium from' : 'grant premium to'} the account of @${u.actualUsername || u.username}.`,
+          },
+          revoke: {
+            title: "Revoke Active Sessions",
+            icon: <XCircle size={24} className="text-orange-500" />,
+            colorClass: "bg-orange-500/10 text-orange-500",
+            buttonColor: "bg-orange-600 hover:bg-orange-700 text-white",
+            description: `You are about to revoke all active sessions for @${u.actualUsername || u.username}. They will be logged out immediately from all devices.`,
+          }
+        }[reasonModalState.action];
+
+        return (
+          <ActionReasonModal
+            isOpen={reasonModalState.isOpen}
+            onClose={() => setReasonModalState({ isOpen: false, action: null, user: null })}
+            onConfirm={executeAction}
+            title={details?.title}
+            icon={details?.icon}
+            description={details?.description}
+            colorClass={details?.colorClass}
+            buttonColor={details?.buttonColor}
+            confirmText="Confirm Action"
+          />
+        );
+      })()}
     </div>
   );
 }

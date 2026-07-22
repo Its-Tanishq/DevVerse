@@ -14,4 +14,6 @@ public class CompanyDTO {
 
     @NotBlank(message = "Name cannot be blank")
     private String name;
+
+    private Long problemCount;
 }

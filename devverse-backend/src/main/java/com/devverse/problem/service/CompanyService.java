@@ -119,13 +119,19 @@ public class CompanyService {
 
     public List<CompanyDTO> getAllCompanies() {
         return companiesRepo.findAll().stream()
-                .map(company -> modelMapper.map(company, CompanyDTO.class))
+                .map(company -> {
+                    CompanyDTO dto = modelMapper.map(company, CompanyDTO.class);
+                    dto.setProblemCount(problemsRepo.countByCompanies(company));
+                    return dto;
+                })
                 .collect(Collectors.toList());
     }
 
     public CompanyDTO getCompanyById(Long id) {
         Company company = companiesRepo.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Company not found"));
-        return modelMapper.map(company, CompanyDTO.class);
+        CompanyDTO dto = modelMapper.map(company, CompanyDTO.class);
+        dto.setProblemCount(problemsRepo.countByCompanies(company));
+        return dto;
     }
 }

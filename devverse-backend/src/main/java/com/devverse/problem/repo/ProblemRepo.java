@@ -20,6 +20,8 @@ public interface ProblemRepo extends JpaRepository<Problem, Long> {
     List<Problem> findByCompanies(Company company);
     Optional<Problem> findByTitle(String title);
     List<Problem> findByTags(Tag tags);
+    long countByTags(Tag tags);
+    long countByCompanies(Company company);
 
     @Query("SELECT p FROM Problem p " +
            "WHERE (:difficulty IS NULL OR p.difficulty = :difficulty) " +
