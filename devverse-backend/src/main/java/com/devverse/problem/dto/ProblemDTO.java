@@ -18,7 +18,6 @@ public class ProblemDTO {
     @NotBlank(message = "Title cannot be blank")
     private String title;
 
-    @NotBlank(message = "Slug cannot be blank")
     private String slug;
 
     @NotBlank(message = "Description cannot be blank")
@@ -27,7 +26,6 @@ public class ProblemDTO {
     @NotNull(message = "Difficulty cannot be null")
     private Difficulty difficulty;
 
-    @NotBlank(message = "Hints cannot be blank")
     private String hints;
 
     private Boolean isPremium;

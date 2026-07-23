@@ -22,6 +22,7 @@ import com.devverse.problem.dto.UserProblemWorkspaceDTO;
 import com.devverse.admin.service.ActivityLogService;
 import java.util.Set;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -69,7 +70,21 @@ public class ProblemService {
         Problem problem = problemsRepo.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Problem with id " + id + " not found"));
 
-        if (problemsDTO.getTitle() != null) problem.setTitle(problemsDTO.getTitle());
+        if (problemsDTO.getTitle() != null) {
+            String newTitle = problemsDTO.getTitle();
+            if (!newTitle.equals(problem.getTitle())) {
+                String slug = newTitle.toLowerCase()
+                        .replaceAll("[^a-z0-9]+", "-")
+                        .replaceAll("^-|-$", "");
+                
+                Optional<Problem> existing = problemsRepo.findBySlug(slug);
+                if (existing.isPresent() && !existing.get().getID().equals(id)) {
+                    throw new IllegalArgumentException("Problem with slug " + slug + " already exists");
+                }
+                problem.setSlug(slug);
+            }
+            problem.setTitle(newTitle);
+        }
         if (problemsDTO.getDescription() != null) problem.setDescription(problemsDTO.getDescription());
         if (problemsDTO.getDifficulty() != null) problem.setDifficulty(problemsDTO.getDifficulty());
         if (problemsDTO.getHints() != null) problem.setHints(problemsDTO.getHints());
