@@ -1,8 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import Editor from "@monaco-editor/react";
 import {
   ChevronRight,
   Code2,
   Moon,
+  Sun,
   Minus,
   Plus,
   RotateCcw,
@@ -18,30 +20,92 @@ import {
   ListChecks,
 } from "lucide-react";
 
+const LANGUAGES = [
+  { id: 50, name: "C (GCC 9)", value: "c" },
+  { id: 54, name: "C++ (GCC 9)", value: "cpp" },
+  { id: 62, name: "Java (OpenJDK 17)", value: "java" },
+  { id: 63, name: "JavaScript (Node 18)", value: "javascript" },
+  { id: 71, name: "Python (3.8)", value: "python" },
+];
+
 const ProblemCodeEditor = () => {
   const [activeTab, setActiveTab] = useState("result");
+  const [language, setLanguage] = useState(LANGUAGES[4]);
+  const [code, setCode] = useState("");
+  const [isLangDropdownOpen, setIsLangDropdownOpen] = useState(false);
+  const [fontSize, setFontSize] = useState(14);
+  const [isDarkTheme, setIsDarkTheme] = useState(() => document.documentElement.classList.contains("dark"));
+
+  useEffect(() => {
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.attributeName === "class") {
+          setIsDarkTheme(document.documentElement.classList.contains("dark"));
+        }
+      });
+    });
+    observer.observe(document.documentElement, { attributes: true });
+    return () => observer.disconnect();
+  }, []);
+
+  const toggleTheme = () => {
+    const newTheme = isDarkTheme ? "light" : "dark";
+    document.documentElement.classList.toggle("dark", !isDarkTheme);
+    localStorage.setItem("theme", newTheme);
+    setIsDarkTheme(!isDarkTheme);
+  };
 
   return (
     <div className="w-1/2 flex flex-col bg-neutral-50 dark:bg-[#1e1e1e] transition-colors">
       <div className="flex items-center justify-between px-4 py-2 border-b border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#1a1a1a] text-xs transition-colors">
         <div className="flex items-center gap-4">
-          <button className="flex items-center gap-1.5 px-3 py-1.5 bg-neutral-100 dark:bg-neutral-800/80 hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded-md transition-colors text-neutral-900 dark:text-white font-medium">
-            <Code2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-            <span>Python 3</span>
-            <ChevronRight className="w-3.5 h-3.5 text-neutral-400 dark:text-neutral-500 rotate-90" />
-          </button>
-          <button className="flex items-center gap-1.5 text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors">
-            <Moon className="w-4 h-4" />
-            <span>Dark</span>
+          <div className="relative">
+            <button
+              onClick={() => setIsLangDropdownOpen(!isLangDropdownOpen)}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-neutral-100 dark:bg-neutral-800/80 hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded-md transition-colors text-neutral-900 dark:text-white font-medium"
+            >
+              <Code2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+              <span>{language.name}</span>
+              <ChevronRight className={`w-3.5 h-3.5 text-neutral-400 dark:text-neutral-500 transition-transform ${isLangDropdownOpen ? "-rotate-90" : "rotate-90"}`} />
+            </button>
+            {isLangDropdownOpen && (
+              <div className="absolute top-full left-0 mt-1 w-48 bg-white dark:bg-[#1e1e1e] border border-neutral-200 dark:border-neutral-700 rounded-md shadow-lg z-50 py-1">
+                {LANGUAGES.map((lang) => (
+                  <button
+                    key={lang.id}
+                    onClick={() => {
+                      setLanguage(lang);
+                      setIsLangDropdownOpen(false);
+                    }}
+                    className={`w-full text-left px-4 py-2 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors ${language.id === lang.id ? "text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-500/10" : "text-neutral-700 dark:text-neutral-300"}`}
+                  >
+                    {lang.name}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+          <button 
+            onClick={toggleTheme}
+            className="flex items-center gap-1.5 text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors"
+          >
+            {isDarkTheme ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            <span>{isDarkTheme ? "Light" : "Dark"}</span>
           </button>
           <div className="flex items-center border border-neutral-300 dark:border-neutral-700 rounded-md overflow-hidden bg-neutral-100 dark:bg-neutral-800/50">
-            <button className="p-1.5 hover:bg-neutral-200 dark:hover:bg-neutral-700 hover:text-neutral-900 dark:hover:text-white text-neutral-500 dark:text-neutral-400 transition-colors">
+            <button
+              onClick={() => setFontSize(Math.max(10, fontSize - 1))}
+              className="p-1.5 hover:bg-neutral-200 dark:hover:bg-neutral-700 hover:text-neutral-900 dark:hover:text-white text-neutral-500 dark:text-neutral-400 transition-colors"
+            >
               <Minus className="w-3.5 h-3.5" />
             </button>
             <span className="px-3 text-neutral-900 dark:text-white font-medium">
-              14
+              {fontSize}
             </span>
-            <button className="p-1.5 hover:bg-neutral-200 dark:hover:bg-neutral-700 hover:text-neutral-900 dark:hover:text-white text-neutral-500 dark:text-neutral-400 transition-colors">
+            <button
+              onClick={() => setFontSize(Math.min(30, fontSize + 1))}
+              className="p-1.5 hover:bg-neutral-200 dark:hover:bg-neutral-700 hover:text-neutral-900 dark:hover:text-white text-neutral-500 dark:text-neutral-400 transition-colors"
+            >
               <Plus className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -60,7 +124,7 @@ const ProblemCodeEditor = () => {
       <div className="flex items-center gap-1 px-4 border-b border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#1a1a1a] transition-colors">
         <div className="flex items-center gap-2 px-4 py-2 border-t-2 border-purple-600 dark:border-purple-500 bg-neutral-50 dark:bg-[#1e1e1e] text-purple-700 dark:text-purple-400 text-sm">
           <FileCode2 className="w-4 h-4" />
-          <span className="font-medium">solution.py</span>
+          <span className="font-medium">solution.{language.value === "python" ? "py" : language.value === "javascript" ? "js" : language.value === "java" ? "java" : language.value === "cpp" ? "cpp" : "c"}</span>
           <div className="w-1.5 h-1.5 rounded-full bg-amber-500 ml-1"></div>
         </div>
         <button className="p-2 text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition-colors">
@@ -68,79 +132,35 @@ const ProblemCodeEditor = () => {
         </button>
       </div>
 
-      <div className="flex-1 flex bg-white dark:bg-[#121212] p-4 font-mono text-[14px] leading-loose overflow-y-auto transition-colors">
-        <div className="flex flex-col text-neutral-400 dark:text-neutral-600 text-right pr-4 select-none border-r border-neutral-200 dark:border-neutral-800 min-h-full">
-          {[...Array(20)].map((_, i) => (
-            <span key={i}>{i + 1}</span>
-          ))}
-        </div>
-        <div className="pl-4 text-neutral-800 dark:text-neutral-300 whitespace-pre">
-          <span className="text-pink-600 dark:text-pink-500">class</span>{" "}
-          <span className="text-blue-600 dark:text-blue-400">Solution</span>
-          :<br />
-          {"    "}
-          <span className="text-pink-600 dark:text-pink-500">def</span>{" "}
-          <span className="text-blue-600 dark:text-blue-400">change</span>
-          (self, amount:{" "}
-          <span className="text-emerald-600 dark:text-emerald-400">
-            int
-          </span>
-          , coins: List[
-          <span className="text-emerald-600 dark:text-emerald-400">
-            int
-          </span>
-          ]) -{">"}{" "}
-          <span className="text-emerald-600 dark:text-emerald-400">
-            int
-          </span>
-          :<br />
-          {"        "}
-          <span className="text-neutral-500">
-            # dp[i] = number of ways to make amount i
-          </span>
-          <br />
-          {"        "}dp = [
-          <span className="text-orange-600 dark:text-orange-400">0</span>] *
-          (amount +{" "}
-          <span className="text-orange-600 dark:text-orange-400">1</span>)
-          <br />
-          {"        "}dp[
-          <span className="text-orange-600 dark:text-orange-400">0</span>] ={" "}
-          <span className="text-orange-600 dark:text-orange-400">1</span>
-          <br />
-          <br />
-          {"        "}
-          <span className="text-pink-600 dark:text-pink-500">
-            for
-          </span> coin{" "}
-          <span className="text-pink-600 dark:text-pink-500">in</span>{" "}
-          coins:
-          <br />
-          {"            "}
-          <span className="text-pink-600 dark:text-pink-500">
-            for
-          </span> i{" "}
-          <span className="text-pink-600 dark:text-pink-500">in</span>{" "}
-          <span className="text-blue-600 dark:text-blue-400">range</span>
-          (coin, amount +{" "}
-          <span className="text-orange-600 dark:text-orange-400">1</span>):
-          <br />
-          {"                "}dp[i] += dp[i - coin]
-          <br />
-          <br />
-          {"        "}
-          <span className="text-pink-600 dark:text-pink-500">
-            return
-          </span>{" "}
-          dp[amount]
-          <br />
-        </div>
+      <div className="flex-1 flex bg-white dark:bg-[#1e1e1e] relative overflow-hidden transition-colors">
+        <Editor
+          height="100%"
+          language={language.value}
+          theme={isDarkTheme ? "vs-dark" : "light"}
+          value={code}
+          onChange={(value) => setCode(value || "")}
+          options={{
+            fontSize: fontSize,
+            minimap: { enabled: false },
+            scrollBeyondLastLine: false,
+            padding: { top: 16, bottom: 16 },
+            fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
+            smoothScrolling: true,
+            cursorBlinking: "smooth",
+            cursorSmoothCaretAnimation: "on",
+            formatOnPaste: true,
+          }}
+          loading={
+            <div className="flex items-center justify-center h-full w-full bg-white dark:bg-[#1e1e1e]">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 dark:border-purple-500"></div>
+            </div>
+          }
+        />
       </div>
 
       <div className="flex items-center justify-between px-4 py-1.5 bg-white dark:bg-[#1a1a1a] text-[11px] text-neutral-500 border-t border-b border-neutral-200 dark:border-neutral-800 transition-colors">
         <div>
-          Ln 11, Col 28 &nbsp;&nbsp;&nbsp; Python 3.11 &nbsp;&nbsp;&nbsp;
-          UTF-8
+          {language.name} &nbsp;&nbsp;&nbsp; UTF-8
         </div>
         <div className="flex items-center gap-4">
           <span>Spaces: 4</span>
@@ -263,7 +283,7 @@ const ProblemCodeEditor = () => {
                 <div className="text-neutral-500">
                   Language:{" "}
                   <span className="text-neutral-900 dark:text-white">
-                    Python 3
+                    {language.name}
                   </span>
                 </div>
               </div>
