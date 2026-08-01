@@ -23,7 +23,8 @@ public class CodeboxTestController {
         CodeboxResponseDTO response = codeboxService.executeCode(
                 request.code(),
                 request.languageId(),
-                request.stdin()
+                request.stdin(),
+                null
         );
         return ResponseEntity.ok(new ApiResponse<>(true, "Code execution completed", response, Instant.now()));
     }

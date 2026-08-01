@@ -30,12 +30,12 @@ public class SubmissionController {
         return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResponse<>(true, "Submission created successfully", submissionService.createSubmission(submissionDTO), Instant.now()));
     }
 
-    @PostMapping("/run") // TODO: Make System for run the code only
+    @PostMapping("/run")
     public ResponseEntity<ApiResponse<?>> runSubmission(@Valid @RequestBody SubmissionDTO submissionDTO) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         Long userId = userService.getUserByEmail(auth.getName()).getID();
         submissionDTO.setUserId(userId);
-        return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>(true, "Code executed on sample test cases", submissionService.createSubmission(submissionDTO), Instant.now()));
+        return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>(true, "Code executed on sample test cases", submissionService.runCode(submissionDTO), Instant.now()));
     }
     
     @PostMapping("/submit")
@@ -43,7 +43,7 @@ public class SubmissionController {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         Long userId = userService.getUserByEmail(auth.getName()).getID();
         submissionDTO.setUserId(userId);
-        return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResponse<>(true, "Full submission successful with verdict", submissionService.createSubmission(submissionDTO), Instant.now()));
+        return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResponse<>(true, "Full submission successful with verdict", submissionService.submitCode(submissionDTO), Instant.now()));
     }
 
     @GetMapping
