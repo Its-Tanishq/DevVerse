@@ -246,7 +246,7 @@ const ProblemInfo = () => {
         </div>
 
         {/* Right Pane (Code Editor & Output Console) */}
-        <ProblemCodeEditor />
+        <ProblemCodeEditor problemId={problemId} />
       </div>
     </div>
   );
