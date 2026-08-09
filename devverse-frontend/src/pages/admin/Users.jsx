@@ -1,81 +1,21 @@
-import { useState, useEffect, useRef } from "react";
-import { createPortal } from "react-dom";
-import { useNavigate } from "react-router";
-import { motion, AnimatePresence } from "framer-motion";
-import { 
-  Users as UsersIcon, Search, MoreHorizontal, Loader2, Filter, 
-  Shield, Star, Ban, Trash2, Eye, Activity, Code2, Calendar, 
-  ArrowUpDown, ChevronDown, CheckCircle2, XCircle, Award, User
-} from "lucide-react";
+import { useState, useEffect } from "react";
+import { Search, Download, Edit2, Trash2, UserPlus, User } from "lucide-react";
 import apiClient from "../../config/ApiClient";
 import toast from "react-hot-toast";
-import ActionReasonModal from "../../components/common/ActionReasonModal";
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 20 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.45 } },
-};
 
 export default function Users() {
-  const navigate = useNavigate();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  
-  // Search and Filters
   const [searchQuery, setSearchQuery] = useState("");
-  const [roleFilter, setRoleFilter] = useState("All"); // All, Admin, User
-  const [premiumFilter, setPremiumFilter] = useState("All"); // All, Premium, Free
-  const [bannedFilter, setBannedFilter] = useState("All"); // All, Active, Banned
-  
-  // Action Modal State
-  const [reasonModalState, setReasonModalState] = useState({
-    isOpen: false,
-    action: null,
-    user: null
-  });
-  const [joinDateFilter, setJoinDateFilter] = useState("All"); // All, Recent
-  
-  // Sorting
-  const [sortBy, setSortBy] = useState("Newest"); // Newest, Most Active, Rating
-
-  // Actions Dropdown State (using Portal to avoid table cell clipping/z-index issues)
-  const [dropdownState, setDropdownState] = useState(null);
-  const dropdownRef = useRef(null);
-
-  useEffect(() => {
-    // Close dropdown when clicking outside
-    function handleClickOutside(event) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setDropdownState(null);
-      }
-    }
-    function handleScrollOrResize() {
-      if (dropdownState) setDropdownState(null);
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    window.addEventListener("scroll", handleScrollOrResize, true);
-    window.addEventListener("resize", handleScrollOrResize);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-      window.removeEventListener("scroll", handleScrollOrResize, true);
-      window.removeEventListener("resize", handleScrollOrResize);
-    };
-  }, [dropdownState]);
 
   useEffect(() => {
     const fetchUsers = async () => {
       try {
         const res = await apiClient.get("/user?page=0&size=50");
-        
         const enrichedUsers = res.data.data.content.map((u, index) => ({
           ...u,
           id: u.id || u.ID || `user-${index}-${Date.now()}`,
-          createdAt: u.createdAt || new Date().toISOString(),
-          isPremium: u.isPremium || false,
-          xpPoint: u.xpPoint || 0,
-          isBanned: u.isEnabled === false
         }));
-        
         setUsers(enrichedUsers);
       } catch (error) {
         console.error("Failed to fetch users", error);
@@ -86,481 +26,150 @@ export default function Users() {
     fetchUsers();
   }, []);
 
-  const handleAction = (action, user) => {
-    setDropdownState(null);
-    const targetId = user.id || user.ID;
-    const targetParam = user.actualUsername || user.username || targetId;
-    if (action === 'view_profile' || action === 'view_submissions' || action === 'view_activity') {
-      navigate(`/admin/users/${targetParam}`, { state: { user } });
-      return;
-    }
-    
-    // Intercept with Reason Modal
-    if (action === 'toggle_premium' || action === 'toggle_ban' || action === 'delete_account' || action === 'revoke_sessions') {
-      const modalAction = action === 'toggle_premium' ? 'premium' : action === 'toggle_ban' ? 'ban' : action === 'delete_account' ? 'delete' : 'revoke';
-      setReasonModalState({ isOpen: true, action: modalAction, user });
-      return;
-    }
-  };
-
-  const executeAction = async (reason) => {
-    const { action, user } = reasonModalState;
-    setReasonModalState({ isOpen: false, action: null, user: null });
-    
-    const targetId = user.id || user.ID;
-    
-    try {
-      if (action === 'premium') {
-        await apiClient.patch(`/user/${targetId}/premium?reason=${encodeURIComponent(reason)}`);
-        setUsers(prev => prev.map(u => (u.id === targetId || u.ID === targetId) ? { ...u, isPremium: !u.isPremium } : u));
-        toast.success(user.isPremium ? "Premium removed" : "Premium granted");
-      } else if (action === 'ban') {
-        await apiClient.patch(`/user/${targetId}/ban?reason=${encodeURIComponent(reason)}`);
-        setUsers(prev => prev.map(u => (u.id === targetId || u.ID === targetId) ? { ...u, isBanned: !u.isBanned, isEnabled: u.isBanned } : u));
-        toast.success(user.isBanned ? "User unbanned" : "User banned");
-      } else if (action === 'delete') {
-        await apiClient.delete(`/user/${targetId}?reason=${encodeURIComponent(reason)}`);
-        setUsers(prev => prev.filter(u => u.id !== targetId && u.ID !== targetId));
-        toast.success("Account deleted successfully");
-      } else if (action === 'revoke') {
-        await apiClient.delete(`/admin/user/${targetId}/sessions?reason=${encodeURIComponent(reason)}`);
-        toast.success("Active sessions revoked successfully");
-      }
-    } catch (error) {
-      console.error("Action failed", error);
-      toast.error("Action failed");
-    }
-  };
-
   const filteredUsers = users.filter((user) => {
-    const matchesSearch =
+    return (
       user.actualUsername?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.email?.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    const matchesRole = roleFilter === "All" || 
-      (roleFilter === "Admin" && user.role === "ADMIN") || 
-      (roleFilter === "User" && user.role === "USER");
-      
-    const matchesPremium = premiumFilter === "All" || 
-      (premiumFilter === "Premium" && user.isPremium) || 
-      (premiumFilter === "Free" && !user.isPremium);
-      
-    const matchesStatus = bannedFilter === "All" || 
-      (bannedFilter === "Active" && !user.isBanned) || 
-      (bannedFilter === "Banned" && user.isBanned);
-      
-      
-    let matchesJoinDate = true;
-    if (joinDateFilter === "Recent") {
-      matchesJoinDate = new Date(user.createdAt) > new Date(Date.now() - 30 * 86400000); // Last 30 days
-    }
-
-    return matchesSearch && matchesRole && matchesPremium && matchesStatus && matchesJoinDate;
+      user.email?.toLowerCase().includes(searchQuery.toLowerCase())
+    );
   });
 
-  const sortedUsers = [...filteredUsers].sort((a, b) => {
-    if (sortBy === "Newest") {
-      return new Date(b.createdAt) - new Date(a.createdAt);
-    } else if (sortBy === "Most Active") {
-      return b.xpPoint - a.xpPoint;
-    }
-    return 0;
-  });
+  // Helper for time ago
+  const timeAgo = (dateStr) => {
+    if (!dateStr) return "Unknown";
+    const seconds = Math.floor((new Date() - new Date(dateStr)) / 1000);
+    const days = Math.floor(seconds / 86400);
+    if (days > 30) return `${Math.floor(days / 30)} months ago`;
+    if (days > 0) return `${days} days ago`;
+    return "Today";
+  };
 
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div className="mb-8 border-b border-border pb-6 flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
-        <div className="flex items-center gap-3">
-          <div className="bg-pink-50 dark:bg-pink-900/20 w-12 h-12 rounded-xl flex items-center justify-center shadow-sm border border-pink-100 dark:border-pink-800/30">
-            <UsersIcon size={24} className="text-pink-600 dark:text-pink-400" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold text-foreground tracking-tight">
-              Manage Users
-            </h1>
-            <p className="text-muted-foreground text-sm mt-1">
-              Complete oversight and management of platform users.
-            </p>
+    <div className="space-y-6">
+      {/* Page Header */}
+      <div className="flex justify-between items-center pb-2 border-b border-white/5">
+        <div>
+          <h1 className="text-2xl font-bold text-white tracking-tight">Users Management</h1>
+          <p className="text-sm text-gray-400 mt-1">Manage user accounts, roles, and permissions</p>
+        </div>
+        <button className="flex items-center gap-2 bg-[#7c3aed] hover:bg-[#6d28d9] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+          <UserPlus size={16} />
+          <span>Add User</span>
+        </button>
+      </div>
+
+      {/* Users Management Table Container */}
+      <div className="bg-[#161616] border border-white/5 rounded-xl overflow-hidden">
+        <div className="p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-white/5">
+          <h2 className="text-base font-bold text-white">Users Management</h2>
+          <div className="flex gap-3">
+            <div className="relative">
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+              <input 
+                type="text" 
+                placeholder="Search users..." 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="bg-[#111111] border border-white/10 rounded-lg pl-9 pr-4 py-2 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:border-[#7c3aed]"
+              />
+            </div>
+            <button className="flex items-center gap-2 bg-[#111111] hover:bg-[#1a1a1a] border border-white/10 text-gray-300 px-4 py-2 rounded-lg text-sm transition-colors">
+              <Download size={14} />
+              <span>Export</span>
+            </button>
           </div>
         </div>
         
-        <div className="flex gap-2">
-           <div className="bg-card border border-border rounded-lg px-4 py-2 flex flex-col shadow-sm">
-             <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Total Users</span>
-             <span className="text-lg font-bold text-foreground">{users.length}</span>
-           </div>
-           <div className="bg-card border border-border rounded-lg px-4 py-2 flex flex-col shadow-sm">
-             <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Premium</span>
-             <span className="text-lg font-bold text-pink-600 dark:text-pink-400">{users.filter(u => u.isPremium).length}</span>
-           </div>
-        </div>
-      </div>
-
-      {/* Toolbar & Filters */}
-      <motion.div
-        initial={{ opacity: 0, y: 15 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        className="space-y-4"
-      >
-        <div className="flex flex-col lg:flex-row gap-3 justify-between">
-          <div className="flex items-center bg-card border border-border rounded-xl px-3 py-2.5 gap-2 flex-1 max-w-md shadow-sm transition-colors focus-within:ring-2 focus-within:ring-[#7c3aed]/20 focus-within:border-[#7c3aed]">
-            <Search size={18} className="text-muted-foreground shrink-0" />
-            <input
-              type="text"
-              placeholder="Search users by name or email..."
-              className="bg-transparent border-none outline-none w-full text-foreground placeholder:text-muted-foreground"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-          
-          <div className="flex flex-wrap gap-2 items-center">
-            {/* Sort Dropdown */}
-            <div className="relative group flex items-center bg-card border border-border rounded-xl px-3 py-2.5 shadow-sm text-sm">
-              <ArrowUpDown size={16} className="text-muted-foreground mr-2" />
-              <select 
-                className="bg-transparent outline-none text-foreground appearance-none pr-6 cursor-pointer font-medium"
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-              >
-                <option value="Newest">Sort: Newest</option>
-                <option value="Most Active">Sort: Most Active</option>
-              </select>
-              <ChevronDown size={14} className="text-muted-foreground absolute right-3 pointer-events-none" />
-            </div>
-          </div>
-        </div>
-
-        {/* Extended Filters */}
-        <div className="flex flex-wrap gap-2 p-3 bg-accent/20 rounded-xl border border-border/50 items-center">
-          <Filter size={16} className="text-muted-foreground ml-1 mr-2" />
-          
-          <select 
-            className="bg-card border border-border rounded-lg px-3 py-2 text-sm text-foreground outline-none shadow-sm cursor-pointer"
-            value={roleFilter}
-            onChange={(e) => setRoleFilter(e.target.value)}
-          >
-            <option value="All">All Roles</option>
-            <option value="Admin">Admin</option>
-            <option value="User">User</option>
-          </select>
-          
-          <select 
-            className="bg-card border border-border rounded-lg px-3 py-2 text-sm text-foreground outline-none shadow-sm cursor-pointer"
-            value={premiumFilter}
-            onChange={(e) => setPremiumFilter(e.target.value)}
-          >
-            <option value="All">All Plans</option>
-            <option value="Premium">Premium</option>
-            <option value="Free">Free</option>
-          </select>
-
-          <select 
-            className="bg-card border border-border rounded-lg px-3 py-2 text-sm text-foreground outline-none shadow-sm cursor-pointer"
-            value={bannedFilter}
-            onChange={(e) => setBannedFilter(e.target.value)}
-          >
-            <option value="All">All Status</option>
-            <option value="Active">Active</option>
-            <option value="Banned">Banned</option>
-          </select>
-          
-          <select 
-            className="bg-card border border-border rounded-lg px-3 py-2 text-sm text-foreground outline-none shadow-sm cursor-pointer"
-            value={joinDateFilter}
-            onChange={(e) => setJoinDateFilter(e.target.value)}
-          >
-            <option value="All">Any Join Date</option>
-            <option value="Recent">Last 30 Days</option>
-          </select>
-          
-          {/* Clear Filters */}
-          {(roleFilter !== "All" || premiumFilter !== "All" || bannedFilter !== "All" || joinDateFilter !== "All") && (
-            <button 
-              onClick={() => {
-                setRoleFilter("All");
-                setPremiumFilter("All");
-                setBannedFilter("All");
-                setJoinDateFilter("All");
-                setSearchQuery("");
-              }}
-              className="ml-auto text-xs font-medium text-pink-600 hover:text-pink-700 dark:text-pink-400 dark:hover:text-pink-300 underline underline-offset-2"
-            >
-              Clear all filters
-            </button>
-          )}
-        </div>
-      </motion.div>
-
-      {/* Table */}
-      <motion.div
-        variants={fadeUp}
-        initial="hidden"
-        animate="show"
-        className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm relative z-10"
-      >
-        <div className="overflow-x-auto pb-32"> {/* Extra padding bottom for dropdowns */}
-          <table className="w-full min-w-[800px]">
-            <thead>
-              <tr className="border-b border-border bg-accent/30">
-                <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  User
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  Email & Join Date
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  Status & Plan
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  Stats
-                </th>
-                <th className="px-6 py-4 text-right text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  Actions
-                </th>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm whitespace-nowrap">
+            <thead className="bg-[#111111]/50 text-[10px] uppercase text-gray-500 font-semibold border-b border-white/5">
+              <tr>
+                <th className="px-5 py-3">USER</th>
+                <th className="px-5 py-3">EMAIL</th>
+                <th className="px-5 py-3">JOINED</th>
+                <th className="px-5 py-3">LEVEL</th>
+                <th className="px-5 py-3">PROBLEMS</th>
+                <th className="px-5 py-3">STATUS</th>
+                <th className="px-5 py-3 text-right">ACTIONS</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-white/5 text-gray-300 text-[13px]">
               {loading ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-16 text-center">
-                    <div className="flex flex-col items-center gap-3">
-                      <Loader2 size={32} className="animate-spin text-pink-500" />
-                      <p className="text-muted-foreground text-sm font-medium">
-                        Loading users database...
-                      </p>
-                    </div>
-                  </td>
+                  <td colSpan={7} className="px-5 py-8 text-center text-gray-500">Loading users...</td>
                 </tr>
-              ) : sortedUsers.length === 0 ? (
+              ) : filteredUsers.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-16 text-center">
-                    <div className="flex flex-col items-center gap-3">
-                      <div className="bg-pink-50 dark:bg-pink-900/20 w-14 h-14 rounded-2xl flex items-center justify-center mb-2">
-                        <Search size={28} className="text-pink-500" />
-                      </div>
-                      <h3 className="text-lg font-semibold text-foreground">No users found</h3>
-                      <p className="text-muted-foreground text-sm max-w-sm">
-                        We couldn't find any users matching your current filters. Try adjusting your search parameters.
-                      </p>
-                    </div>
-                  </td>
+                  <td colSpan={7} className="px-5 py-8 text-center text-gray-500">No users found.</td>
                 </tr>
               ) : (
-                sortedUsers.map((user, index) => (
-                  <tr key={user.id || user.ID || index} className="border-b border-border hover:bg-accent/30 transition-colors group">
-                    {/* User Column */}
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="relative">
-                          {user.profilePic ? (
-                            <img
-                              src={user.profilePic}
-                              alt={user.actualUsername}
-                              className="w-10 h-10 rounded-full object-cover shadow-sm ring-2 ring-transparent group-hover:ring-pink-500/20 transition-all"
-                            />
+                filteredUsers.map((u) => {
+                  const level = u.isPremium ? 'Gold' : 'Free';
+                  const status = (u.isBanned || u.isEnabled === false) ? 'Suspended' : 'Active';
+                  return (
+                    <tr key={u.id} className="hover:bg-white/5 transition-colors">
+                      <td className="px-5 py-4">
+                        <div className="flex items-center gap-3">
+                          {u.profilePic ? (
+                            <img src={u.profilePic} alt={u.actualUsername} className="w-8 h-8 rounded-full border border-white/10 object-cover" />
                           ) : (
-                            <div className="bg-accent text-foreground w-10 h-10 rounded-full flex items-center justify-center shadow-sm border border-border group-hover:ring-2 group-hover:ring-purple-500/20 transition-all">
-                              <User size={20} />
+                            <div className="w-8 h-8 rounded-full border border-white/10 bg-[#111111] flex items-center justify-center">
+                              <User size={14} className="text-gray-500" />
                             </div>
                           )}
+                          <span className="font-semibold text-white">{u.actualUsername || u.username}</span>
                         </div>
-                        <div>
-                          <div className="flex items-center gap-1.5">
-                            <span className="font-bold text-foreground text-sm">
-                              {user.actualUsername}
-                            </span>
-                            {user.role === "ADMIN" && (
-                              <Shield size={12} className="text-[#7c3aed]" />
-                            )}
-                          </div>
-                          <div className="text-xs text-muted-foreground mt-0.5">
-                            @{user.actualUsername?.toLowerCase().replace(/\s/g, '')}
-                          </div>
+                      </td>
+                      <td className="px-5 py-4 text-gray-400">{u.email}</td>
+                      <td className="px-5 py-4 text-gray-400">{timeAgo(u.createdAt)}</td>
+                      <td className="px-5 py-4">
+                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
+                          level === 'Gold' ? 'bg-[#f59e0b]/10 text-[#f59e0b]' :
+                          'bg-white/5 text-gray-400'
+                        }`}>
+                          {level}
+                        </span>
+                      </td>
+                      <td className="px-5 py-4 font-semibold">{u.xpPoint || 0}</td>
+                      <td className="px-5 py-4">
+                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
+                          status === 'Active' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'
+                        }`}>
+                          {status}
+                        </span>
+                      </td>
+                      <td className="px-5 py-4 text-right">
+                        <div className="flex justify-end gap-2">
+                          <button className="w-7 h-7 rounded bg-[#111111] hover:bg-[#222] border border-white/10 flex items-center justify-center text-gray-400 transition-colors">
+                            <Edit2 size={12} />
+                          </button>
+                          <button className="w-7 h-7 rounded bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 flex items-center justify-center text-red-500 transition-colors">
+                            <Trash2 size={12} />
+                          </button>
                         </div>
-                      </div>
-                    </td>
-                    
-                    {/* Email & Join Date */}
-                    <td className="px-6 py-4">
-                      <div className="text-sm font-medium text-foreground">
-                        {user.email}
-                      </div>
-                      <div className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-                        <Calendar size={12} />
-                        Joined {new Date(user.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                      </div>
-                    </td>
-                     
-                    {/* Status & Plan */}
-                    <td className="px-6 py-4">
-                      <div className="flex flex-col gap-2 items-start">
-                        {user.isBanned ? (
-                          <span className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/30 text-red-700 dark:text-red-400 px-2.5 py-0.5 rounded-full text-[11px] font-semibold tracking-wide uppercase flex items-center gap-1">
-                            <Ban size={10} /> Banned
-                          </span>
-                        ) : (
-                          <span className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/30 text-emerald-700 dark:text-emerald-400 px-2.5 py-0.5 rounded-full text-[11px] font-semibold tracking-wide uppercase flex items-center gap-1">
-                            <CheckCircle2 size={10} /> Active
-                          </span>
-                        )}
-                        
-                        {user.isPremium ? (
-                          <span className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/30 text-amber-700 dark:text-amber-400 px-2.5 py-0.5 rounded-full text-[11px] font-semibold tracking-wide uppercase flex items-center gap-1">
-                            <Star size={10} className="fill-amber-500" /> Premium
-                          </span>
-                        ) : (
-                          <span className="bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 px-2.5 py-0.5 rounded-full text-[11px] font-semibold tracking-wide uppercase">
-                            Free Tier
-                          </span>
-                        )}
-                      </div>
-                    </td>
-
-                    {/* Stats */}
-                    <td className="px-6 py-4">
-                       <div className="space-y-1.5">
-                         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                           <Activity size={13} className="text-blue-500" /> XP: {user.xpPoint}
-                         </div>
-                       </div>
-                    </td>
-
-                    {/* Actions */}
-                    <td className="px-6 py-4 text-right">
-                      <button 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (dropdownState?.userId === user.id) {
-                            setDropdownState(null);
-                          } else {
-                            const rect = e.currentTarget.getBoundingClientRect();
-                            setDropdownState({
-                              userId: user.id,
-                              user: user,
-                              top: rect.bottom + 6,
-                              left: rect.right - 224, // 224px equals w-56
-                            });
-                          }
-                        }}
-                        className={`p-2 rounded-xl transition-colors ${dropdownState?.userId === user.id ? 'bg-[#7c3aed]/10 text-[#7c3aed]' : 'hover:bg-accent text-muted-foreground hover:text-foreground border border-transparent hover:border-border'}`}
-                      >
-                        <MoreHorizontal size={18} />
-                      </button>
-                    </td>
-                  </tr>
-                ))
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
         </div>
-      </motion.div>
-
-      {/* Portal Dropdown Menu */}
-      {typeof document !== 'undefined' && createPortal(
-        <AnimatePresence>
-          {dropdownState && (
-            <motion.div
-              ref={dropdownRef}
-              key={`portal-dropdown-${dropdownState.userId}`}
-              initial={{ opacity: 0, scale: 0.95, y: -8 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: -8 }}
-              transition={{ duration: 0.15 }}
-              style={{
-                position: 'fixed',
-                top: `${dropdownState.top}px`,
-                left: `${Math.max(16, dropdownState.left)}px`,
-                zIndex: 99999,
-              }}
-              className="w-56 rounded-xl bg-card border border-border shadow-2xl overflow-hidden divide-y divide-border"
-            >
-              <div className="py-1">
-                <button onClick={() => handleAction('view_profile', dropdownState.user)} className="w-full text-left px-4 py-2.5 text-sm text-foreground hover:bg-accent flex items-center gap-2.5 transition-colors">
-                  <Eye size={15} className="text-blue-500" /> View full profile
-                </button>
-                <button onClick={() => handleAction('view_submissions', dropdownState.user)} className="w-full text-left px-4 py-2.5 text-sm text-foreground hover:bg-accent flex items-center gap-2.5 transition-colors">
-                  <Code2 size={15} className="text-emerald-500" /> View submissions
-                </button>
-                <button onClick={() => handleAction('view_activity', dropdownState.user)} className="w-full text-left px-4 py-2.5 text-sm text-foreground hover:bg-accent flex items-center gap-2.5 transition-colors">
-                  <Activity size={15} className="text-purple-500" /> View activity log
-                </button>
-              </div>
-              <div className="py-1">
-                <button onClick={() => handleAction('toggle_premium', dropdownState.user)} className="w-full text-left px-4 py-2.5 text-sm text-foreground hover:bg-accent flex items-center gap-2.5 transition-colors">
-                  <Star size={15} className="text-amber-500" /> 
-                  {dropdownState.user.isPremium ? 'Remove Premium' : 'Make Premium'}
-                </button>
-                <button onClick={() => handleAction('revoke_sessions', dropdownState.user)} className="w-full text-left px-4 py-2.5 text-sm text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-900/10 flex items-center gap-2.5 transition-colors">
-                  <XCircle size={15} /> Revoke sessions
-                </button>
-              </div>
-              <div className="py-1">
-                <button onClick={() => handleAction('toggle_ban', dropdownState.user)} className={`w-full text-left px-4 py-2.5 text-sm hover:bg-accent flex items-center gap-2.5 transition-colors ${dropdownState.user.isBanned ? 'text-emerald-600' : 'text-amber-600'}`}>
-                  {dropdownState.user.isBanned ? <CheckCircle2 size={15} /> : <Ban size={15} />} 
-                  {dropdownState.user.isBanned ? 'Unban User' : 'Ban User'}
-                </button>
-                <button onClick={() => handleAction('delete_account', dropdownState.user)} className="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10 flex items-center gap-2.5 transition-colors">
-                  <Trash2 size={15} /> Delete account
-                </button>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>,
-        document.body
-      )}
-
-      {/* Action Reason Modal */}
-      {(() => {
-        const u = reasonModalState.user;
-        if (!u) return null;
-        const details = {
-          delete: {
-            title: "Delete Account",
-            icon: <Trash2 size={24} className="text-red-500" />,
-            colorClass: "bg-red-500/10 text-red-500",
-            buttonColor: "bg-red-600 hover:bg-red-700 text-white",
-            description: `You are about to permanently delete the account of @${u.actualUsername || u.username}. This action cannot be undone.`,
-          },
-          ban: {
-            title: u.isBanned || u.isEnabled === false ? "Unban Account" : "Ban Account",
-            icon: <Ban size={24} className="text-orange-500" />,
-            colorClass: "bg-orange-500/10 text-orange-500",
-            buttonColor: "bg-orange-600 hover:bg-orange-700 text-white",
-            description: `You are about to ${u.isBanned || u.isEnabled === false ? 'unban' : 'ban'} the account of @${u.actualUsername || u.username}.`,
-          },
-          premium: {
-            title: u.isPremium ? "Remove Premium Status" : "Grant Premium Status",
-            icon: <Star size={24} className="text-indigo-500" />,
-            colorClass: "bg-indigo-500/10 text-indigo-500",
-            buttonColor: "bg-indigo-600 hover:bg-indigo-700 text-white",
-            description: `You are about to ${u.isPremium ? 'remove premium from' : 'grant premium to'} the account of @${u.actualUsername || u.username}.`,
-          },
-          revoke: {
-            title: "Revoke Active Sessions",
-            icon: <XCircle size={24} className="text-orange-500" />,
-            colorClass: "bg-orange-500/10 text-orange-500",
-            buttonColor: "bg-orange-600 hover:bg-orange-700 text-white",
-            description: `You are about to revoke all active sessions for @${u.actualUsername || u.username}. They will be logged out immediately from all devices.`,
-          }
-        }[reasonModalState.action];
-
-        return (
-          <ActionReasonModal
-            isOpen={reasonModalState.isOpen}
-            onClose={() => setReasonModalState({ isOpen: false, action: null, user: null })}
-            onConfirm={executeAction}
-            title={details?.title}
-            icon={details?.icon}
-            description={details?.description}
-            colorClass={details?.colorClass}
-            buttonColor={details?.buttonColor}
-            confirmText="Confirm Action"
-          />
-        );
-      })()}
+        
+        <div className="p-4 border-t border-white/5 flex flex-col sm:flex-row justify-between items-center gap-4">
+          <span className="text-xs text-gray-500">Showing 1-{Math.min(50, filteredUsers.length)} of {users.length} users</span>
+          <div className="flex items-center gap-1 text-xs">
+            <button className="px-3 py-1.5 rounded bg-transparent hover:bg-white/5 text-gray-400 transition-colors border border-transparent hover:border-white/10 mr-1">
+              &larr; Prev
+            </button>
+            <button className="w-7 h-7 rounded bg-[#7c3aed] text-white flex items-center justify-center font-medium">1</button>
+            <button className="w-7 h-7 rounded hover:bg-white/5 text-gray-400 flex items-center justify-center font-medium transition-colors">2</button>
+            <button className="w-7 h-7 rounded hover:bg-white/5 text-gray-400 flex items-center justify-center font-medium transition-colors">3</button>
+            <button className="px-3 py-1.5 rounded bg-transparent hover:bg-white/5 text-gray-400 transition-colors border border-transparent hover:border-white/10 ml-1">
+              Next &rarr;
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

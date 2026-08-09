@@ -1,321 +1,321 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link } from "react-router";
-import { motion } from "framer-motion";
-import apiClient from "../../config/ApiClient";
-import useAuth from "../../store/AuthStore";
 import {
   Users,
-  FolderOpen,
+  Code,
   Building2,
-  TerminalSquare,
-  ChevronRight,
+  Crown,
   TrendingUp,
+  Settings,
+  RefreshCw,
+  Search,
+  Download,
+  Edit2,
+  Trash2,
+  Filter,
   Activity,
-  CalendarClock,
+  CheckCircle2,
+  Trophy,
+  AlertCircle,
   Zap,
-  ArrowUpRight,
-  Loader2,
 } from "lucide-react";
 
-const statCardsMeta = [
-  {
-    label: "Total Users",
-    key: "totalUsers",
-    icon: Users,
-    color: "#ec4899",
-    bg: "bg-pink-50 dark:bg-pink-900/20",
-  },
-  {
-    label: "Total Problems",
-    key: "totalProblems",
-    icon: FolderOpen,
-    color: "#06b6d4",
-    bg: "bg-cyan-50 dark:bg-cyan-900/20",
-  },
-  {
-    label: "Companies",
-    key: "totalCompanies",
-    icon: Building2,
-    color: "#f59e0b",
-    bg: "bg-amber-50 dark:bg-amber-900/20",
-  },
-];
-
-const quickLinks = [
-  {
-    title: "Manage Users",
-    description: "View, edit, or remove registered users",
-    path: "/admin/users",
-    icon: Users,
-    color: "#ec4899",
-    bg: "bg-pink-50 dark:bg-pink-900/20",
-  },
-  {
-    title: "Manage Problems",
-    description: "Create, edit, and delete coding problems",
-    path: "/admin/problems",
-    icon: FolderOpen,
-    color: "#06b6d4",
-    bg: "bg-cyan-50 dark:bg-cyan-900/20",
-  },
-  {
-    title: "Manage Companies",
-    description: "Add or remove company tags",
-    path: "/admin/companies",
-    icon: Building2,
-    color: "#f59e0b",
-    bg: "bg-amber-50 dark:bg-amber-900/20",
-  },
-  {
-    title: "Daily Challenges",
-    description: "Schedule and manage daily challenges",
-    path: "/admin/daily-challenges",
-    icon: CalendarClock,
-    color: "#8b5cf6",
-    bg: "bg-violet-50 dark:bg-violet-900/20",
-  },
-];
-
-const systemMetrics = [
-  { label: "API Uptime", value: "99.9%", color: "#10b981", pct: 99.9 },
-  { label: "Avg Response", value: "124ms", color: "#7c3aed", pct: 88 },
-  { label: "DB Usage", value: "42%", color: "#f59e0b", pct: 42 },
-  { label: "Storage", value: "1.2 GB", color: "#06b6d4", pct: 24 },
-];
-
-const container = {
-  hidden: {},
-  show: { transition: { staggerChildren: 0.08 } },
-};
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 20 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.45 } },
-};
-
 export default function Dashboard() {
-  const [stats, setStats] = useState(null);
-  const [activity, setActivity] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const user = useAuth((state) => state.user);
+  const [loading, setLoading] = useState(false);
 
-  // Helper to format time ago
-  const timeAgo = (dateStr) => {
-    const seconds = Math.floor((new Date() - new Date(dateStr)) / 1000);
-    if (seconds < 60) return "just now";
-    const minutes = Math.floor(seconds / 60);
-    if (minutes < 60) return `${minutes}m ago`;
-    const hours = Math.floor(minutes / 60);
-    if (hours < 24) return `${hours}h ago`;
-    return `${Math.floor(hours / 24)}d ago`;
-  };
+  // Hardcoding the exact visual representation as per the user's request
+  const statCards = [
+    {
+      label: "Total Users",
+      value: "24,582",
+      change: "+12.5%",
+      subtext: "Active this month: 18,293",
+      icon: Users,
+      color: "#7c3aed",
+      bg: "bg-[#7c3aed]/10",
+      changeColor: "text-emerald-500",
+    },
+    {
+      label: "Total Problems",
+      value: "2,648",
+      change: "+8.2%",
+      subtext: "Easy: 821 | Medium: 989 | Hard: 838",
+      icon: Code,
+      color: "#06b6d4",
+      bg: "bg-[#06b6d4]/10",
+      changeColor: "text-emerald-500",
+    },
+    {
+      label: "Companies",
+      value: "180",
+      change: "+2.1%",
+      subtext: "Premium partnerships: 45",
+      icon: Building2,
+      color: "#f59e0b",
+      bg: "bg-[#f59e0b]/10",
+      changeColor: "text-emerald-500",
+    },
+    {
+      label: "Premium Subscribers",
+      value: "4,291",
+      change: "+18.7%",
+      subtext: "Monthly recurring: $42.9K",
+      icon: Crown,
+      color: "#10b981",
+      bg: "bg-[#10b981]/10",
+      changeColor: "text-emerald-500",
+    },
+  ];
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [statsRes, activityRes] = await Promise.all([
-          apiClient.get("/admin/stats"),
-          apiClient.get("/admin/activity")
-        ]);
-        setStats(statsRes.data.data);
-        setActivity(activityRes.data.data);
-      } catch (error) {
-        console.error("Failed to fetch admin data:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, []);
+  const recentActivity = [
+    {
+      id: 1,
+      user: "Sarah Chen",
+      action: "created an account",
+      time: "2 min ago",
+      icon: Users,
+      color: "#7c3aed",
+      bg: "bg-[#7c3aed]/10",
+    },
+    {
+      id: 2,
+      user: "Marcus Webb",
+      action: "solved Hard problem #2198",
+      time: "5 min ago",
+      icon: CheckCircle2,
+      color: "#10b981",
+      bg: "bg-[#10b981]/10",
+    },
+    {
+      id: 3,
+      user: "Admin",
+      action: "created contest: Weekly #45",
+      time: "1 hour ago",
+      icon: Trophy,
+      color: "#f59e0b",
+      bg: "bg-[#f59e0b]/10",
+    },
+    {
+      id: 4,
+      user: "Content Team",
+      action: "added 3 new problems",
+      time: "2 hours ago",
+      icon: Code,
+      color: "#06b6d4",
+      bg: "bg-[#06b6d4]/10",
+    },
+    {
+      id: 5,
+      user: "Ethan Cole",
+      action: "upgraded to Premium",
+      time: "3 hours ago",
+      icon: Crown,
+      color: "#ef4444",
+      bg: "bg-[#ef4444]/10",
+    },
+  ];
+
+  const systemStats = [
+    { label: "API Requests", sub: "in 24h", value: "2.3M", icon: Zap },
+    { label: "Avg Response", sub: "performance", value: "145ms", icon: Activity },
+    { label: "Error Rate", sub: "very low", value: "0.02%", icon: AlertCircle },
+    { label: "Uptime", sub: "this month", value: "99.98%", icon: CheckCircle2 },
+  ];
+
+  const usersList = [
+    { id: 1, name: "Ethan Cole", email: "ethan@devverse.io", joined: "2 months ago", level: "Gold", problems: 312, status: "Active", img: "https://i.pravatar.cc/150?u=ethan" },
+    { id: 2, name: "Sarah Chen", email: "sarah@devverse.io", joined: "1 month ago", level: "Silver", problems: 187, status: "Active", img: "https://i.pravatar.cc/150?u=sarah" },
+    { id: 3, name: "Marcus Webb", email: "marcus@devverse.io", joined: "3 weeks ago", level: "Bronze", problems: 95, status: "Active", img: "https://i.pravatar.cc/150?u=marcus" },
+    { id: 4, name: "Priya Kapoor", email: "priya@devverse.io", joined: "5 days ago", level: "Free", problems: 23, status: "Suspended", img: "https://i.pravatar.cc/150?u=priya" },
+    { id: 5, name: "James Wilson", email: "james@devverse.io", joined: "1 week ago", level: "Silver", problems: 156, status: "Active", img: "https://i.pravatar.cc/150?u=james" },
+  ];
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="mb-8 border-b border-border pb-6">
-        <div className="flex items-center gap-3 mb-1">
-          <div className="inline-flex items-center gap-2 bg-[#F2F1FE] dark:bg-[#7c3aed]/15 rounded-full px-3 py-1 text-[13px] font-medium text-[#7c3aed]">
-            <Zap size={12} />
-            Admin Console
-          </div>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-white tracking-tight">Admin Dashboard</h1>
+          <p className="text-sm text-gray-400 mt-1">System overview and management</p>
         </div>
-        <h1 className="text-3xl font-bold text-foreground mt-3">
-          Welcome back, {user?.actualUsername || user?.username || "Admin"} <span className="text-2xl">👋</span>
-        </h1>
-        <p className="text-muted-foreground mt-2 text-sm">
-          Overview of your platform. Manage users, problems, and more.
-        </p>
+        <div className="flex items-center gap-3">
+          <button className="flex items-center gap-2 bg-[#1a1a1a] hover:bg-[#222] border border-white/10 text-gray-300 px-4 py-2 rounded-lg text-sm transition-colors">
+            <Filter size={14} />
+            <span>Last 7 days</span>
+          </button>
+          <button className="w-9 h-9 flex items-center justify-center bg-[#1a1a1a] hover:bg-[#222] border border-white/10 text-gray-300 rounded-lg transition-colors">
+            <RefreshCw size={14} />
+          </button>
+          <button className="w-9 h-9 flex items-center justify-center bg-[#1a1a1a] hover:bg-[#222] border border-white/10 text-gray-300 rounded-lg transition-colors">
+            <Settings size={14} />
+          </button>
+        </div>
       </div>
 
       {/* Stat Cards */}
-      <motion.div
-        className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4"
-        variants={container}
-        initial="hidden"
-        animate="show"
-      >
-        {statCardsMeta.map((stat) => (
-          <motion.div
-            key={stat.label}
-            variants={fadeUp}
-            className="bg-card border border-border rounded-2xl p-5 flex flex-col relative overflow-hidden shadow-sm hover:-translate-y-1 hover:shadow-md transition-all duration-300"
-          >
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {statCards.map((stat) => (
+          <div key={stat.label} className="bg-[#161616] border border-white/5 rounded-xl p-5 hover:border-white/10 transition-colors">
             <div className="flex justify-between items-start mb-4">
-              <span className="text-sm font-medium text-muted-foreground">
-                {stat.label}
-              </span>
-              <div
-                className={`w-10 h-10 rounded-lg flex items-center justify-center ${stat.bg}`}
-              >
-                <stat.icon size={18} style={{ color: stat.color }} />
+              <span className="text-sm font-medium text-gray-400">{stat.label}</span>
+              <div className={`w-8 h-8 rounded flex items-center justify-center ${stat.bg}`}>
+                <stat.icon size={16} style={{ color: stat.color }} />
               </div>
             </div>
-            <div className="flex flex-col">
-              <span className="text-3xl font-bold text-foreground">
-                {loading ? (
-                  <Loader2 size={24} className="animate-spin text-muted-foreground" />
-                ) : (
-                  stats?.[stat.key]?.toLocaleString() ?? "--"
-                )}
-              </span>
+            <div className="flex items-end gap-3 mb-1">
+              <span className="text-3xl font-bold text-white">{stat.value}</span>
+              <div className={`flex items-center gap-1 text-xs font-medium mb-1.5 ${stat.changeColor}`}>
+                <TrendingUp size={12} />
+                <span>{stat.change}</span>
+              </div>
             </div>
-          </motion.div>
+            <span className="text-[11px] text-gray-500">{stat.subtext}</span>
+          </div>
         ))}
-      </motion.div>
+      </div>
 
-      {/* Quick Actions + Sidebar */}
-      <div className="flex flex-col lg:flex-row gap-6">
-        {/* Quick Actions */}
-        <div className="flex-1 min-w-0">
-          <h2 className="text-xl font-bold text-foreground mb-4">
-            Quick Actions
-          </h2>
-          <motion.div
-            className="flex flex-col gap-3"
-            variants={container}
-            initial="hidden"
-            whileInView="show"
-            viewport={{ once: false, margin: "-30px" }}
-          >
-            {quickLinks.map((item) => (
-              <motion.div key={item.title} variants={fadeUp}>
-                <Link
-                  to={item.path}
-                  className="bg-card hover:bg-accent/50 border border-border rounded-2xl p-4 flex items-center justify-between transition-all duration-300 text-left group shadow-sm hover:-translate-y-0.5 hover:shadow-md"
-                >
-                  <div className="flex items-center gap-4">
-                    <div
-                      className={`w-11 h-11 rounded-xl flex items-center justify-center ${item.bg}`}
-                    >
-                      <item.icon size={20} style={{ color: item.color }} />
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="font-semibold text-foreground">
-                        {item.title}
-                      </span>
-                      <span className="text-xs text-muted-foreground mt-0.5">
-                        {item.description}
-                      </span>
-                    </div>
-                  </div>
-                  <ChevronRight
-                    size={18}
-                    className="text-muted-foreground group-hover:text-foreground group-hover:translate-x-0.5 transition-all"
-                  />
-                </Link>
-              </motion.div>
+      {/* Middle Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Recent Activity */}
+        <div className="lg:col-span-2 bg-[#161616] border border-white/5 rounded-xl p-6">
+          <div className="mb-6">
+            <h2 className="text-base font-bold text-white">Recent Activity</h2>
+            <p className="text-xs text-gray-500 mt-1">Last 24 hours</p>
+          </div>
+          <div className="space-y-6">
+            {recentActivity.map((item, idx) => (
+              <div key={item.id} className="flex gap-4 relative">
+                {idx !== recentActivity.length - 1 && (
+                  <div className="absolute top-8 bottom-[-24px] left-[15px] w-px bg-white/5" />
+                )}
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 z-10 ${item.bg}`}>
+                  <item.icon size={14} style={{ color: item.color }} />
+                </div>
+                <div className="flex flex-col pt-1">
+                  <p className="text-sm text-gray-300">
+                    <span className="font-semibold text-white mr-1">{item.user}</span>
+                    {item.action}
+                  </p>
+                  <span className="text-[11px] text-gray-500 mt-1">{item.time}</span>
+                </div>
+              </div>
             ))}
-          </motion.div>
+          </div>
         </div>
 
-        {/* Right Column */}
-        <div className="w-full lg:w-80 shrink-0 space-y-6">
-          {/* System Health */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: false, margin: "-30px" }}
-            transition={{ duration: 0.5 }}
-            className="bg-card border border-border rounded-2xl p-6 shadow-sm"
-          >
-            <div className="flex items-center gap-2 mb-6">
-              <div className="bg-emerald-50 dark:bg-emerald-900/20 w-8 h-8 rounded-lg flex items-center justify-center">
-                <Activity size={16} className="text-emerald-500" />
-              </div>
-              <h2 className="text-lg font-bold text-foreground">
-                System Health
-              </h2>
-            </div>
-            <div className="flex flex-col gap-5">
-              {systemMetrics.map((metric) => (
-                <div key={metric.label} className="flex flex-col gap-2">
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-muted-foreground font-medium">
-                      {metric.label}
-                    </span>
-                    <span className="text-foreground font-bold">
-                      {metric.value}
-                    </span>
+        {/* System Stats */}
+        <div className="bg-[#161616] border border-white/5 rounded-xl p-6">
+          <h2 className="text-base font-bold text-white mb-6">System Stats</h2>
+          <div className="space-y-3">
+            {systemStats.map((stat) => (
+              <div key={stat.label} className="bg-[#111111] border border-white/5 rounded-lg p-4 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded bg-[#1a1a1a] flex items-center justify-center border border-white/5">
+                    <stat.icon size={14} className="text-gray-400" />
                   </div>
-                  <div className="w-full h-1.5 bg-accent/50 rounded-full overflow-hidden">
-                    <div
-                      className="h-full rounded-full transition-all duration-700"
-                      style={{
-                        width: `${metric.pct}%`,
-                        backgroundColor: metric.color,
-                      }}
-                    ></div>
+                  <div className="flex flex-col">
+                    <span className="text-[13px] font-semibold text-gray-300">{stat.label}</span>
+                    <span className="text-[10px] text-gray-500">{stat.sub}</span>
                   </div>
                 </div>
-              ))}
-            </div>
-          </motion.div>
+                <span className="text-lg font-bold text-white">{stat.value}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
 
-          {/* Recent Activity */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: false, margin: "-30px" }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            className="bg-card border border-border rounded-2xl p-6 shadow-sm"
-          >
-            <div className="flex items-center gap-2 mb-5">
-              <div className="bg-[#F2F1FE] dark:bg-[#7c3aed]/15 w-8 h-8 rounded-lg flex items-center justify-center">
-                <TrendingUp size={16} className="text-[#7c3aed]" />
-              </div>
-              <h2 className="text-lg font-bold text-foreground">
-                Recent Activity
-              </h2>
+      {/* Users Management */}
+      <div className="bg-[#161616] border border-white/5 rounded-xl overflow-hidden">
+        <div className="p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-white/5">
+          <h2 className="text-base font-bold text-white">Users Management</h2>
+          <div className="flex gap-3">
+            <div className="relative">
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+              <input 
+                type="text" 
+                placeholder="Search users..." 
+                className="bg-[#111111] border border-white/10 rounded-lg pl-9 pr-4 py-2 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:border-[#7c3aed]"
+              />
             </div>
-            <div className="flex flex-col gap-4">
-              {activity.length === 0 && !loading && (
-                <span className="text-sm text-muted-foreground">No recent activity found.</span>
-              )}
-              {activity.map((item, idx) => (
-                <div
-                  key={item.id}
-                  className="flex items-start gap-3 text-sm"
-                >
-                  <div className="relative mt-0.5 shrink-0">
-                    <div
-                      className="w-2.5 h-2.5 rounded-full"
-                      style={{ backgroundColor: item.colorDot || "#7c3aed" }}
-                    ></div>
-                    {idx !== activity.length - 1 && (
-                      <div className="absolute top-3 left-1/2 -translate-x-1/2 w-px h-5 bg-border"></div>
-                    )}
-                  </div>
-                  <div className="flex flex-col min-w-0">
-                    <span className="text-foreground font-medium truncate">
-                      {item.action}
+            <button className="flex items-center gap-2 bg-[#111111] hover:bg-[#1a1a1a] border border-white/10 text-gray-300 px-4 py-2 rounded-lg text-sm transition-colors">
+              <Download size={14} />
+              <span>Export</span>
+            </button>
+          </div>
+        </div>
+        
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm whitespace-nowrap">
+            <thead className="bg-[#111111]/50 text-[10px] uppercase text-gray-500 font-semibold border-b border-white/5">
+              <tr>
+                <th className="px-5 py-3">USER</th>
+                <th className="px-5 py-3">EMAIL</th>
+                <th className="px-5 py-3">JOINED</th>
+                <th className="px-5 py-3">LEVEL</th>
+                <th className="px-5 py-3">PROBLEMS</th>
+                <th className="px-5 py-3">STATUS</th>
+                <th className="px-5 py-3 text-right">ACTIONS</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/5 text-gray-300 text-[13px]">
+              {usersList.map((u) => (
+                <tr key={u.id} className="hover:bg-white/5 transition-colors">
+                  <td className="px-5 py-4">
+                    <div className="flex items-center gap-3">
+                      <img src={u.img} alt={u.name} className="w-8 h-8 rounded-full border border-white/10" />
+                      <span className="font-semibold text-white">{u.name}</span>
+                    </div>
+                  </td>
+                  <td className="px-5 py-4 text-gray-400">{u.email}</td>
+                  <td className="px-5 py-4 text-gray-400">{u.joined}</td>
+                  <td className="px-5 py-4">
+                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
+                      u.level === 'Gold' ? 'bg-[#f59e0b]/10 text-[#f59e0b]' :
+                      u.level === 'Silver' ? 'bg-gray-400/10 text-gray-300' :
+                      u.level === 'Bronze' ? 'bg-[#d97706]/10 text-[#d97706]' :
+                      'bg-white/5 text-gray-400'
+                    }`}>
+                      {u.level}
                     </span>
-                    <span className="text-[11px] text-muted-foreground">
-                      {timeAgo(item.createdAt)}
+                  </td>
+                  <td className="px-5 py-4 font-semibold">{u.problems}</td>
+                  <td className="px-5 py-4">
+                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
+                      u.status === 'Active' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'
+                    }`}>
+                      {u.status}
                     </span>
-                  </div>
-                </div>
+                  </td>
+                  <td className="px-5 py-4 text-right">
+                    <div className="flex justify-end gap-2">
+                      <button className="w-7 h-7 rounded bg-[#111111] hover:bg-[#222] border border-white/10 flex items-center justify-center text-gray-400 transition-colors">
+                        <Edit2 size={12} />
+                      </button>
+                      <button className="w-7 h-7 rounded bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 flex items-center justify-center text-red-500 transition-colors">
+                        <Trash2 size={12} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
               ))}
-            </div>
-          </motion.div>
+            </tbody>
+          </table>
+        </div>
+        
+        <div className="p-4 border-t border-white/5 flex flex-col sm:flex-row justify-between items-center gap-4">
+          <span className="text-xs text-gray-500">Showing 1-5 of 24,582 users</span>
+          <div className="flex items-center gap-1 text-xs">
+            <button className="px-3 py-1.5 rounded bg-transparent hover:bg-white/5 text-gray-400 transition-colors border border-transparent hover:border-white/10 mr-1">
+              &larr; Prev
+            </button>
+            <button className="w-7 h-7 rounded bg-[#7c3aed] text-white flex items-center justify-center font-medium">1</button>
+            <button className="w-7 h-7 rounded hover:bg-white/5 text-gray-400 flex items-center justify-center font-medium transition-colors">2</button>
+            <button className="w-7 h-7 rounded hover:bg-white/5 text-gray-400 flex items-center justify-center font-medium transition-colors">3</button>
+            <button className="px-3 py-1.5 rounded bg-transparent hover:bg-white/5 text-gray-400 transition-colors border border-transparent hover:border-white/10 ml-1">
+              Next &rarr;
+            </button>
+          </div>
         </div>
       </div>
     </div>
