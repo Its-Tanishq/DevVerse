@@ -1,5 +1,7 @@
+import { useState, useEffect } from "react";
 import { Navigate, Outlet, NavLink, useLocation } from "react-router";
 import useAuth from "../../store/AuthStore";
+import apiClient from "../../config/ApiClient";
 import {
   LayoutDashboard,
   BarChart2,
@@ -18,6 +20,31 @@ export default function Layout() {
   const isLoggedIn = useAuth((state) => state.authStatus);
   const user = useAuth((state) => state.user);
   const location = useLocation();
+
+  const [stats, setStats] = useState({
+    totalUsers: 0,
+    totalProblems: 0,
+    totalCompanies: 0,
+    totalTags: 0,
+    totalDailyChallenges: 0
+  });
+
+  useEffect(() => {
+    if (isLoggedIn && user?.role === "ADMIN") {
+      apiClient.get("/admin/stats")
+        .then(res => {
+          if (res.data.success) {
+            setStats(res.data.data);
+          }
+        })
+        .catch(err => console.error("Failed to fetch admin stats", err));
+    }
+  }, [isLoggedIn, user]);
+
+  const formatNumber = (num) => {
+    if (num >= 1000) return (num / 1000).toFixed(1).replace(/\.0$/, '') + "K";
+    return num?.toString() || "0";
+  };
 
   if (!isLoggedIn) {
     return <Navigate to="/signin" />;
@@ -38,11 +65,11 @@ export default function Layout() {
     {
       title: "MANAGEMENT",
       items: [
-        { name: "Users", path: "/admin/users", icon: Users, badge: "2.4K", badgeBg: "bg-[#7c3aed]" },
-        { name: "Problems", path: "/admin/problems", icon: Code, badge: "2.5K", badgeBg: "bg-[#06b6d4]" },
-        { name: "Companies", path: "/admin/companies", icon: Building2, badge: "180", badgeBg: "bg-[#f59e0b]" },
-        { name: "Tags", path: "/admin/tags", icon: Tag, badge: "45", badgeBg: "bg-[#10b981]" },
-        { name: "Daily Challenges", path: "/admin/daily-challenges", icon: CalendarClock, badge: "365", badgeBg: "bg-[#ef4444]" },
+        { name: "Users", path: "/admin/users", icon: Users, badge: formatNumber(stats.totalUsers), badgeBg: "bg-[#7c3aed]" },
+        { name: "Problems", path: "/admin/problems", icon: Code, badge: formatNumber(stats.totalProblems), badgeBg: "bg-[#06b6d4]" },
+        { name: "Companies", path: "/admin/companies", icon: Building2, badge: formatNumber(stats.totalCompanies), badgeBg: "bg-[#f59e0b]" },
+        { name: "Tags", path: "/admin/tags", icon: Tag, badge: formatNumber(stats.totalTags), badgeBg: "bg-[#10b981]" },
+        { name: "Daily Challenges", path: "/admin/daily-challenges", icon: CalendarClock, badge: formatNumber(stats.totalDailyChallenges), badgeBg: "bg-[#ef4444]" },
       ]
     },
     {

@@ -100,13 +100,6 @@ export default function Tags() {
       <div className="bg-[#161616] border border-white/5 rounded-xl overflow-hidden">
         <div className="p-5 flex justify-between items-center border-b border-white/5">
           <h2 className="text-base font-bold text-white">Tags Management</h2>
-          <button 
-            onClick={() => { setTagName(""); setIsAddOpen(true); }}
-            className="flex items-center gap-2 bg-[#7c3aed] hover:bg-[#6d28d9] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-          >
-            <Plus size={16} />
-            <span>Add Tag</span>
-          </button>
         </div>
         
         <div className="overflow-x-auto">

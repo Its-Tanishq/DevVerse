@@ -19,15 +19,9 @@ export default function DailyChallenges() {
   const fetchSchedule = async () => {
     try {
       setLoading(true);
-      const currentDate = new Date();
-      const year = currentDate.getFullYear();
-      const month = currentDate.getMonth();
-      const startDate = new Date(year, month - 1, 1).toISOString().split('T')[0]; // expanded range
-      const endDate = new Date(year, month + 2, 0).toISOString().split('T')[0];
-      
-      const res = await apiClient.get(`/problem/dc/schedule?startDate=${startDate}&endDate=${endDate}`);
+      const res = await apiClient.get(`/problem/dc?size=100`);
       if (res.data?.success) {
-        setChallenges(res.data.data || []);
+        setChallenges(res.data.data.content || []);
       }
     } catch (err) {
       toast.error("Failed to load schedule");
@@ -92,13 +86,6 @@ export default function DailyChallenges() {
       <div className="bg-[#161616] border border-white/5 rounded-xl overflow-hidden">
         <div className="p-5 flex justify-between items-center border-b border-white/5">
           <h2 className="text-base font-bold text-white">Daily Challenges</h2>
-          <button 
-            onClick={() => { setManualDate(""); setManualProblemId(""); setIsAssignOpen(true); }}
-            className="flex items-center gap-2 bg-[#7c3aed] hover:bg-[#6d28d9] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-          >
-            <CalendarClock size={16} />
-            <span>Schedule Challenge</span>
-          </button>
         </div>
         
         <div className="overflow-x-auto">
@@ -124,7 +111,7 @@ export default function DailyChallenges() {
                   <td colSpan={7} className="px-5 py-8 text-center text-gray-500">No scheduled challenges found.</td>
                 </tr>
               ) : (
-                challenges.slice(0, 5).map((challenge, idx) => {
+                challenges.map((challenge, idx) => {
                   const prob = challenge.problems || {};
                   const solved = [612, 439, 323, 259, 512][idx] || 300;
                   const submissions = [1240, 1089, 955, 678, 834][idx] || 1000;
@@ -159,7 +146,7 @@ export default function DailyChallenges() {
           </table>
         </div>
         <div className="p-4 border-t border-white/5 flex flex-col sm:flex-row justify-between items-center gap-4">
-          <span className="text-xs text-gray-500">Showing 1-{Math.min(5, challenges.length)} of {Math.max(365, challenges.length)} challenges</span>
+          <span className="text-xs text-gray-500">Showing 1-{challenges.length} of {challenges.length} challenges</span>
         </div>
       </div>
 

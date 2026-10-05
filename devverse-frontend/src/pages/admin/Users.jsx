@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router";
 import { Search, Download, Edit2, Trash2, UserPlus, User } from "lucide-react";
 import apiClient from "../../config/ApiClient";
 import toast from "react-hot-toast";
@@ -7,6 +8,7 @@ export default function Users() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -51,10 +53,6 @@ export default function Users() {
           <h1 className="text-2xl font-bold text-white tracking-tight">Users Management</h1>
           <p className="text-sm text-gray-400 mt-1">Manage user accounts, roles, and permissions</p>
         </div>
-        <button className="flex items-center gap-2 bg-[#7c3aed] hover:bg-[#6d28d9] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
-          <UserPlus size={16} />
-          <span>Add User</span>
-        </button>
       </div>
 
       {/* Users Management Table Container */}
@@ -139,7 +137,10 @@ export default function Users() {
                       </td>
                       <td className="px-5 py-4 text-right">
                         <div className="flex justify-end gap-2">
-                          <button className="w-7 h-7 rounded bg-[#111111] hover:bg-[#222] border border-white/10 flex items-center justify-center text-gray-400 transition-colors">
+                          <button 
+                            onClick={() => navigate(`/admin/users/${u.id || u.ID}`, { state: { user: u } })}
+                            className="w-7 h-7 rounded bg-[#111111] hover:bg-[#222] border border-white/10 flex items-center justify-center text-gray-400 transition-colors"
+                          >
                             <Edit2 size={12} />
                           </button>
                           <button className="w-7 h-7 rounded bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 flex items-center justify-center text-red-500 transition-colors">

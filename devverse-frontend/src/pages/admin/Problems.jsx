@@ -117,13 +117,6 @@ export default function Problems() {
       <div className="bg-[#161616] border border-white/5 rounded-xl overflow-hidden">
         <div className="p-5 flex justify-between items-center border-b border-white/5">
           <h2 className="text-base font-bold text-white">Problems Management</h2>
-          <button 
-            onClick={() => { setProblemToEdit(null); setIsProblemModalOpen(true); }}
-            className="flex items-center gap-2 bg-[#7c3aed] hover:bg-[#6d28d9] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-          >
-            <Plus size={16} />
-            <span>Add Problem</span>
-          </button>
         </div>
         
         <div className="overflow-x-auto">

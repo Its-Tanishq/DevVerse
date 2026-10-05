@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router";
+import apiClient from "../../config/ApiClient";
 import {
   Users,
   Code,
@@ -21,99 +22,119 @@ import {
 } from "lucide-react";
 
 export default function Dashboard() {
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({
+    totalUsers: 0,
+    totalProblems: 0,
+    totalCompanies: 0,
+    totalTestCases: 0
+  });
+  const [growthData, setGrowthData] = useState([]);
+  const [recentActivity, setRecentActivity] = useState([]);
+  const [usersList, setUsersList] = useState([]);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // Hardcoding the exact visual representation as per the user's request
+  const timeAgo = (dateInput) => {
+    const date = new Date(dateInput);
+    const seconds = Math.floor((new Date() - date) / 1000);
+    
+    let interval = seconds / 31536000;
+    if (interval > 1) return Math.floor(interval) + " years ago";
+    interval = seconds / 2592000;
+    if (interval > 1) return Math.floor(interval) + " months ago";
+    interval = seconds / 86400;
+    if (interval > 1) return Math.floor(interval) + " days ago";
+    interval = seconds / 3600;
+    if (interval > 1) return Math.floor(interval) + " hours ago";
+    interval = seconds / 60;
+    if (interval > 1) return Math.floor(interval) + " minutes ago";
+    return Math.floor(seconds) + " seconds ago";
+  };
+
+  const getActivityStyles = (log) => {
+    switch(log.colorDot) {
+      case 'blue': return { icon: Settings, color: '#3b82f6', bg: 'bg-blue-500/10' };
+      case 'orange': return { icon: AlertCircle, color: '#f59e0b', bg: 'bg-orange-500/10' };
+      case 'red': return { icon: Trash2, color: '#ef4444', bg: 'bg-red-500/10' };
+      case 'green': return { icon: CheckCircle2, color: '#10b981', bg: 'bg-emerald-500/10' };
+      default: return { icon: Activity, color: '#7c3aed', bg: 'bg-[#7c3aed]/10' };
+    }
+  };
+
+  const fetchDashboardData = async (refresh = false) => {
+    if (refresh) setIsRefreshing(true);
+    
+    try {
+      const [statsRes, growthRes, activityRes, usersRes] = await Promise.all([
+        apiClient.get('/admin/stats'),
+        apiClient.get('/admin/stats/growth'),
+        apiClient.get('/admin/activity'),
+        apiClient.get('/user?page=0&size=5')
+      ]);
+      
+      if (statsRes.data?.data) {
+        setStats(statsRes.data.data);
+      }
+      
+      if (growthRes.data?.data) {
+        setGrowthData(growthRes.data.data);
+      }
+
+      if (activityRes.data?.data) {
+        setRecentActivity(activityRes.data.data);
+      }
+
+      if (usersRes.data?.data?.content) {
+        setUsersList(usersRes.data.data.content);
+      }
+    } catch (error) {
+      console.error("Failed to fetch dashboard data", error);
+    } finally {
+      setLoading(false);
+      setIsRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
   const statCards = [
     {
       label: "Total Users",
-      value: "24,582",
-      change: "+12.5%",
-      subtext: "Active this month: 18,293",
+      value: stats.totalUsers.toLocaleString(),
+      subtext: "Total registered users",
       icon: Users,
       color: "#7c3aed",
       bg: "bg-[#7c3aed]/10",
-      changeColor: "text-emerald-500",
     },
     {
       label: "Total Problems",
-      value: "2,648",
-      change: "+8.2%",
-      subtext: "Easy: 821 | Medium: 989 | Hard: 838",
+      value: stats.totalProblems.toLocaleString(),
+      subtext: "Platform coding challenges",
       icon: Code,
       color: "#06b6d4",
       bg: "bg-[#06b6d4]/10",
-      changeColor: "text-emerald-500",
     },
     {
       label: "Companies",
-      value: "180",
-      change: "+2.1%",
-      subtext: "Premium partnerships: 45",
+      value: stats.totalCompanies.toLocaleString(),
+      subtext: "Premium partnerships",
       icon: Building2,
       color: "#f59e0b",
       bg: "bg-[#f59e0b]/10",
-      changeColor: "text-emerald-500",
     },
     {
-      label: "Premium Subscribers",
-      value: "4,291",
-      change: "+18.7%",
-      subtext: "Monthly recurring: $42.9K",
+      label: "Test Cases",
+      value: stats.totalTestCases.toLocaleString(),
+      subtext: "Automated problem tests",
       icon: Crown,
       color: "#10b981",
       bg: "bg-[#10b981]/10",
-      changeColor: "text-emerald-500",
     },
   ];
 
-  const recentActivity = [
-    {
-      id: 1,
-      user: "Sarah Chen",
-      action: "created an account",
-      time: "2 min ago",
-      icon: Users,
-      color: "#7c3aed",
-      bg: "bg-[#7c3aed]/10",
-    },
-    {
-      id: 2,
-      user: "Marcus Webb",
-      action: "solved Hard problem #2198",
-      time: "5 min ago",
-      icon: CheckCircle2,
-      color: "#10b981",
-      bg: "bg-[#10b981]/10",
-    },
-    {
-      id: 3,
-      user: "Admin",
-      action: "created contest: Weekly #45",
-      time: "1 hour ago",
-      icon: Trophy,
-      color: "#f59e0b",
-      bg: "bg-[#f59e0b]/10",
-    },
-    {
-      id: 4,
-      user: "Content Team",
-      action: "added 3 new problems",
-      time: "2 hours ago",
-      icon: Code,
-      color: "#06b6d4",
-      bg: "bg-[#06b6d4]/10",
-    },
-    {
-      id: 5,
-      user: "Ethan Cole",
-      action: "upgraded to Premium",
-      time: "3 hours ago",
-      icon: Crown,
-      color: "#ef4444",
-      bg: "bg-[#ef4444]/10",
-    },
-  ];
+
 
   const systemStats = [
     { label: "API Requests", sub: "in 24h", value: "2.3M", icon: Zap },
@@ -122,13 +143,16 @@ export default function Dashboard() {
     { label: "Uptime", sub: "this month", value: "99.98%", icon: CheckCircle2 },
   ];
 
-  const usersList = [
-    { id: 1, name: "Ethan Cole", email: "ethan@devverse.io", joined: "2 months ago", level: "Gold", problems: 312, status: "Active", img: "https://i.pravatar.cc/150?u=ethan" },
-    { id: 2, name: "Sarah Chen", email: "sarah@devverse.io", joined: "1 month ago", level: "Silver", problems: 187, status: "Active", img: "https://i.pravatar.cc/150?u=sarah" },
-    { id: 3, name: "Marcus Webb", email: "marcus@devverse.io", joined: "3 weeks ago", level: "Bronze", problems: 95, status: "Active", img: "https://i.pravatar.cc/150?u=marcus" },
-    { id: 4, name: "Priya Kapoor", email: "priya@devverse.io", joined: "5 days ago", level: "Free", problems: 23, status: "Suspended", img: "https://i.pravatar.cc/150?u=priya" },
-    { id: 5, name: "James Wilson", email: "james@devverse.io", joined: "1 week ago", level: "Silver", problems: 156, status: "Active", img: "https://i.pravatar.cc/150?u=james" },
-  ];
+
+
+  if (loading) {
+    return (
+      <div className="min-h-[80vh] flex flex-col items-center justify-center">
+        <RefreshCw size={36} className="animate-spin text-[#7c3aed] mb-4" />
+        <p className="text-gray-400 font-medium">Loading dashboard...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -139,12 +163,12 @@ export default function Dashboard() {
           <p className="text-sm text-gray-400 mt-1">System overview and management</p>
         </div>
         <div className="flex items-center gap-3">
-          <button className="flex items-center gap-2 bg-[#1a1a1a] hover:bg-[#222] border border-white/10 text-gray-300 px-4 py-2 rounded-lg text-sm transition-colors">
-            <Filter size={14} />
-            <span>Last 7 days</span>
-          </button>
-          <button className="w-9 h-9 flex items-center justify-center bg-[#1a1a1a] hover:bg-[#222] border border-white/10 text-gray-300 rounded-lg transition-colors">
-            <RefreshCw size={14} />
+          <button 
+            onClick={() => fetchDashboardData(true)}
+            disabled={isRefreshing}
+            className="w-9 h-9 flex items-center justify-center bg-[#1a1a1a] hover:bg-[#222] border border-white/10 text-gray-300 rounded-lg transition-colors disabled:opacity-50"
+          >
+            <RefreshCw size={14} className={isRefreshing ? "animate-spin text-[#7c3aed]" : ""} />
           </button>
           <button className="w-9 h-9 flex items-center justify-center bg-[#1a1a1a] hover:bg-[#222] border border-white/10 text-gray-300 rounded-lg transition-colors">
             <Settings size={14} />
@@ -155,21 +179,19 @@ export default function Dashboard() {
       {/* Stat Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {statCards.map((stat) => (
-          <div key={stat.label} className="bg-[#161616] border border-white/5 rounded-xl p-5 hover:border-white/10 transition-colors">
-            <div className="flex justify-between items-start mb-4">
+          <div key={stat.label} className="bg-[#161616] border border-white/5 rounded-xl p-5 hover:border-white/10 transition-colors relative overflow-hidden group">
+            <div className="relative z-10 flex justify-between items-start mb-4">
               <span className="text-sm font-medium text-gray-400">{stat.label}</span>
               <div className={`w-8 h-8 rounded flex items-center justify-center ${stat.bg}`}>
                 <stat.icon size={16} style={{ color: stat.color }} />
               </div>
             </div>
-            <div className="flex items-end gap-3 mb-1">
-              <span className="text-3xl font-bold text-white">{stat.value}</span>
-              <div className={`flex items-center gap-1 text-xs font-medium mb-1.5 ${stat.changeColor}`}>
-                <TrendingUp size={12} />
-                <span>{stat.change}</span>
-              </div>
+            <div className="relative z-10 flex items-end gap-3 mb-1">
+              <span className="text-3xl font-bold text-white">
+                {loading ? "..." : stat.value}
+              </span>
             </div>
-            <span className="text-[11px] text-gray-500">{stat.subtext}</span>
+            <span className="relative z-10 text-[11px] text-gray-500">{stat.subtext}</span>
           </div>
         ))}
       </div>
@@ -183,23 +205,30 @@ export default function Dashboard() {
             <p className="text-xs text-gray-500 mt-1">Last 24 hours</p>
           </div>
           <div className="space-y-6">
-            {recentActivity.map((item, idx) => (
-              <div key={item.id} className="flex gap-4 relative">
-                {idx !== recentActivity.length - 1 && (
-                  <div className="absolute top-8 bottom-[-24px] left-[15px] w-px bg-white/5" />
-                )}
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 z-10 ${item.bg}`}>
-                  <item.icon size={14} style={{ color: item.color }} />
+            {recentActivity.slice(0, 5).map((item, idx) => {
+              const styles = getActivityStyles(item);
+              const Icon = styles.icon;
+              return (
+                <div key={item.id} className="flex gap-4 relative">
+                  {idx !== Math.min(recentActivity.length, 5) - 1 && (
+                    <div className="absolute top-8 bottom-[-24px] left-[15px] w-px bg-white/5" />
+                  )}
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 z-10 ${styles.bg}`}>
+                    <Icon size={14} style={{ color: styles.color }} />
+                  </div>
+                  <div className="flex flex-col pt-1">
+                    <p className="text-sm text-gray-300">
+                      {item.action}
+                    </p>
+                    <span className="text-[11px] text-gray-500 mt-1">{timeAgo(item.createdAt)}</span>
+                  </div>
                 </div>
-                <div className="flex flex-col pt-1">
-                  <p className="text-sm text-gray-300">
-                    <span className="font-semibold text-white mr-1">{item.user}</span>
-                    {item.action}
-                  </p>
-                  <span className="text-[11px] text-gray-500 mt-1">{item.time}</span>
-                </div>
-              </div>
-            ))}
+              );
+            })}
+            
+            {recentActivity.length === 0 && !loading && (
+              <p className="text-sm text-gray-500 text-center py-4">No recent activity found.</p>
+            )}
           </div>
         </div>
 
@@ -259,52 +288,56 @@ export default function Dashboard() {
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5 text-gray-300 text-[13px]">
-              {usersList.map((u) => (
-                <tr key={u.id} className="hover:bg-white/5 transition-colors">
-                  <td className="px-5 py-4">
-                    <div className="flex items-center gap-3">
-                      <img src={u.img} alt={u.name} className="w-8 h-8 rounded-full border border-white/10" />
-                      <span className="font-semibold text-white">{u.name}</span>
-                    </div>
-                  </td>
-                  <td className="px-5 py-4 text-gray-400">{u.email}</td>
-                  <td className="px-5 py-4 text-gray-400">{u.joined}</td>
-                  <td className="px-5 py-4">
-                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
-                      u.level === 'Gold' ? 'bg-[#f59e0b]/10 text-[#f59e0b]' :
-                      u.level === 'Silver' ? 'bg-gray-400/10 text-gray-300' :
-                      u.level === 'Bronze' ? 'bg-[#d97706]/10 text-[#d97706]' :
-                      'bg-white/5 text-gray-400'
-                    }`}>
-                      {u.level}
-                    </span>
-                  </td>
-                  <td className="px-5 py-4 font-semibold">{u.problems}</td>
-                  <td className="px-5 py-4">
-                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
-                      u.status === 'Active' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'
-                    }`}>
-                      {u.status}
-                    </span>
-                  </td>
-                  <td className="px-5 py-4 text-right">
-                    <div className="flex justify-end gap-2">
-                      <button className="w-7 h-7 rounded bg-[#111111] hover:bg-[#222] border border-white/10 flex items-center justify-center text-gray-400 transition-colors">
-                        <Edit2 size={12} />
-                      </button>
-                      <button className="w-7 h-7 rounded bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 flex items-center justify-center text-red-500 transition-colors">
-                        <Trash2 size={12} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+              {usersList.map((u) => {
+                const isSuspended = u.isEnabled === false;
+                const level = u.isPremium ? 'Premium' : 'Free';
+                
+                return (
+                  <tr key={u.id} className="hover:bg-white/5 transition-colors">
+                    <td className="px-5 py-4">
+                      <div className="flex items-center gap-3">
+                        <img 
+                          src={u.profilePic || `https://ui-avatars.com/api/?name=${u.actualUsername || u.username}&background=random`} 
+                          alt={u.actualUsername || u.username} 
+                          className="w-8 h-8 rounded-full border border-white/10" 
+                        />
+                        <span className="font-semibold text-white">{u.actualUsername || u.username}</span>
+                      </div>
+                    </td>
+                    <td className="px-5 py-4 text-gray-400">{u.email}</td>
+                    <td className="px-5 py-4 text-gray-400">{timeAgo(u.createdAt)}</td>
+                    <td className="px-5 py-4">
+                      <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
+                        level === 'Premium' ? 'bg-[#f59e0b]/10 text-[#f59e0b]' :
+                        'bg-white/5 text-gray-400'
+                      }`}>
+                        {level}
+                      </span>
+                    </td>
+                    <td className="px-5 py-4 font-semibold text-gray-500">-</td>
+                    <td className="px-5 py-4">
+                      <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
+                        !isSuspended ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'
+                      }`}>
+                        {!isSuspended ? 'Active' : 'Suspended'}
+                      </span>
+                    </td>
+                    <td className="px-5 py-4 text-right">
+                      <div className="flex justify-end gap-2">
+                        <Link to={`/admin/user/${u.id}`} className="w-7 h-7 rounded bg-[#111111] hover:bg-[#222] border border-white/10 flex items-center justify-center text-gray-400 transition-colors">
+                          <Edit2 size={12} />
+                        </Link>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
         
         <div className="p-4 border-t border-white/5 flex flex-col sm:flex-row justify-between items-center gap-4">
-          <span className="text-xs text-gray-500">Showing 1-5 of 24,582 users</span>
+          <span className="text-xs text-gray-500">Showing {usersList.length} of {stats.totalUsers.toLocaleString()} users</span>
           <div className="flex items-center gap-1 text-xs">
             <button className="px-3 py-1.5 rounded bg-transparent hover:bg-white/5 text-gray-400 transition-colors border border-transparent hover:border-white/10 mr-1">
               &larr; Prev

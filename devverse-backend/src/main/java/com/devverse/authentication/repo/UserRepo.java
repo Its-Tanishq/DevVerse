@@ -11,5 +11,7 @@ public interface UserRepo extends JpaRepository<User, Long> {
     Optional<User> findByUsername(String username);
     Optional<User> findByEmail(String email);
     List<User> findByRole(String role);
+    @org.springframework.data.jpa.repository.Query("SELECT DATE(u.createdAt) as date, COUNT(u) as count FROM User u GROUP BY DATE(u.createdAt)")
+    List<Object[]> countUsersGroupedByDate();
 
 }

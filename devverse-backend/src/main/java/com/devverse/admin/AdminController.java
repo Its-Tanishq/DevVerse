@@ -10,6 +10,8 @@ import com.devverse.problem.repo.CompanyRepo;
 import com.devverse.problem.repo.ProblemRepo;
 import com.devverse.problem.repo.TestCaseRepo;
 import com.devverse.problem.repo.SubmissionRepo;
+import com.devverse.problem.repo.TagRepo;
+import com.devverse.problem.repo.DailyChallengeRepo;
 import com.devverse.authentication.repo.RefreshTokenRepo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -35,6 +37,8 @@ public class AdminController {
     private final ActivityLogRepo activityLogRepo;
     private final SubmissionRepo submissionRepo;
     private final RefreshTokenRepo refreshTokenRepo;
+    private final TagRepo tagRepo;
+    private final DailyChallengeRepo dailyChallengeRepo;
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/stats")
@@ -43,7 +47,9 @@ public class AdminController {
                 "totalUsers", userRepo.count(),
                 "totalProblems", problemRepo.count(),
                 "totalCompanies", companyRepo.count(),
-                "totalTestCases", testCaseRepo.count()
+                "totalTestCases", testCaseRepo.count(),
+                "totalTags", tagRepo.count(),
+                "totalDailyChallenges", dailyChallengeRepo.count()
         );
         return ResponseEntity.ok(new ApiResponse<>(true, "Admin stats fetched successfully", stats, Instant.now()));
     }
@@ -130,5 +136,18 @@ public class AdminController {
                 .build());
                 
         return ResponseEntity.ok(new ApiResponse<>(true, "User profile updated successfully", user, Instant.now()));
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/stats/growth")
+    public ResponseEntity<ApiResponse<?>> getGrowthStats() {
+        List<Object[]> rawStats = userRepo.countUsersGroupedByDate();
+        List<Map<String, Object>> growthData = rawStats.stream().map(row -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("date", row[0]);
+            map.put("count", row[1]);
+            return map;
+        }).toList();
+        return ResponseEntity.ok(new ApiResponse<>(true, "Growth stats fetched", growthData, Instant.now()));
     }
 }
