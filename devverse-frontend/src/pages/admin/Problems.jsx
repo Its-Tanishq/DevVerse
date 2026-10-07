@@ -1,10 +1,8 @@
 import { useState, useEffect } from "react";
 import { Plus, Edit2, Trash2 } from "lucide-react";
+import { useNavigate } from "react-router";
 import apiClient from "../../config/ApiClient";
 import ConfirmationModal from "../../components/common/ConfirmationModal";
-import ProblemModal from "../../components/admin/ProblemModal";
-import TestCasesModal from "../../components/admin/TestCasesModal";
-import BoilerplateModal from "../../components/admin/BoilerplateModal";
 
 export default function Problems() {
   const [problems, setProblems] = useState([]);
@@ -14,12 +12,7 @@ export default function Problems() {
   const [problemToDelete, setProblemToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
   
-  const [isProblemModalOpen, setIsProblemModalOpen] = useState(false);
-  const [problemToEdit, setProblemToEdit] = useState(null);
-  const [isSaving, setIsSaving] = useState(false);
-
-  const [testCasesProblem, setTestCasesProblem] = useState(null);
-  const [boilerplateProblem, setBoilerplateProblem] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchProblems();
@@ -57,24 +50,6 @@ export default function Problems() {
     }
   };
 
-  const handleSaveProblem = async (formData) => {
-    try {
-      setIsSaving(true);
-      if (problemToEdit) {
-        const problemId = problemToEdit.id || problemToEdit.ID;
-        await apiClient.patch(`/problem/${problemId}`, formData);
-      } else {
-        await apiClient.post("/problem", formData);
-      }
-      setIsProblemModalOpen(false);
-      fetchProblems();
-    } catch (error) {
-      console.error("Failed to save problem:", error);
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
   const handleConfirmDelete = async () => {
     if (!problemToDelete) return;
     try {
@@ -106,7 +81,7 @@ export default function Problems() {
           <p className="text-sm text-gray-400 mt-1">Create, edit, and manage coding problems</p>
         </div>
         <button 
-          onClick={() => { setProblemToEdit(null); setIsProblemModalOpen(true); }}
+          onClick={() => navigate("/admin/problems/create")}
           className="flex items-center gap-2 bg-[#7c3aed] hover:bg-[#6d28d9] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
         >
           <Plus size={16} />
@@ -167,7 +142,7 @@ export default function Problems() {
                       <td className="px-5 py-4 text-right">
                         <div className="flex justify-end gap-2">
                           <button 
-                            onClick={() => { setProblemToEdit(problem); setIsProblemModalOpen(true); }}
+                            onClick={() => navigate(`/admin/problems/edit/${problem.id || problem.ID}`)}
                             className="w-7 h-7 rounded bg-[#7c3aed]/10 hover:bg-[#7c3aed]/20 border border-[#7c3aed]/20 flex items-center justify-center text-[#7c3aed] transition-colors"
                           >
                             <Edit2 size={12} />
@@ -212,24 +187,6 @@ export default function Problems() {
         description={`Are you sure you want to delete "${problemToDelete?.title}"? This action cannot be undone.`}
         confirmText="Delete"
         isSubmitting={isDeleting}
-      />
-
-      <ProblemModal
-        isOpen={isProblemModalOpen}
-        onClose={() => setIsProblemModalOpen(false)}
-        onSave={handleSaveProblem}
-        initialData={problemToEdit}
-        isSubmitting={isSaving}
-      />
-      <TestCasesModal
-        isOpen={!!testCasesProblem}
-        onClose={() => setTestCasesProblem(null)}
-        problem={testCasesProblem}
-      />
-      <BoilerplateModal
-        isOpen={!!boilerplateProblem}
-        onClose={() => setBoilerplateProblem(null)}
-        problem={boilerplateProblem}
       />
     </div>
   );

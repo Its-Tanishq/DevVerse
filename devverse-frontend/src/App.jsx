@@ -19,6 +19,8 @@ import Problems from "./pages/admin/Problems";
 import Companies from "./pages/admin/Companies";
 import DailyChallengesAdmin from "./pages/admin/DailyChallenges";
 import Tags from "./pages/admin/Tags";
+import CreateProblem from "./pages/admin/CreateProblem";
+import EditProblem from "./pages/admin/EditProblem";
 
 function UserLayout() {
   const isLoggedIn = useAuth((state) => state.authStatus);
@@ -59,6 +61,8 @@ function App() {
             <Route path="users" element={<Users />} />
             <Route path="users/:id" element={<UserProfile />} />
             <Route path="problems" element={<Problems />} />
+            <Route path="problems/create" element={<CreateProblem />} />
+            <Route path="problems/edit/:id" element={<EditProblem />} />
             <Route path="tags" element={<Tags />} />
             <Route path="companies" element={<Companies />} />
             <Route path="daily-challenges" element={<DailyChallengesAdmin />} />
