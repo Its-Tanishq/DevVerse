@@ -23,7 +23,9 @@ public class AppConstants {
             "/api/problem/discussion/**",
             "/api/problem/boilerplate",
             "/api/problem/boilerplate/**",
-            "/api/problem/testcase/problem/*/public"
+            "/api/problem/testcase/problem/*/public",
+            "/api/follow/*/followers",
+            "/api/follow/*/following"
     };
 
 }
