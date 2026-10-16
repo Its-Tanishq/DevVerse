@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { Loader2, ThumbsUp } from "lucide-react";
+import { Link } from "react-router";
+import { Loader2, ThumbsUp, User } from "lucide-react";
 import apiClient from "../../../config/ApiClient";
+import FollowButton from "@/components/common/FollowButton";
 
 const ProblemDiscussionTab = ({ problemId }) => {
   const [discussions, setDiscussions] = useState([]);
@@ -128,21 +130,46 @@ const ProblemDiscussionTab = ({ problemId }) => {
               key={discussion.ID || discussion.id}
               className="bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-lg p-4"
             >
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-700 dark:text-purple-400 font-bold uppercase">
-                  {discussion.username ? discussion.username.charAt(0) : "U"}
-                </div>
-                <div>
-                  <div className="font-medium text-neutral-900 dark:text-white">
-                    {discussion.username ||
-                      `User ${discussion.userId || "Anonymous"}`}
+              <div className="flex items-center justify-between gap-3 mb-2">
+                <div className="flex items-center gap-3 min-w-0">
+                  {discussion.username ? (
+                    <Link
+                      to={`/user/${discussion.username}`}
+                      className="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-700 dark:text-purple-400 font-bold uppercase shrink-0 hover:ring-2 hover:ring-[#7c3aed] transition-all"
+                    >
+                      {discussion.username.charAt(0)}
+                    </Link>
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-700 dark:text-purple-400 font-bold uppercase shrink-0">
+                      U
+                    </div>
+                  )}
+                  <div className="min-w-0">
+                    {discussion.username ? (
+                      <Link
+                        to={`/user/${discussion.username}`}
+                        className="font-medium text-neutral-900 dark:text-white hover:text-[#7c3aed] dark:hover:text-[#9A7DFF] transition-colors truncate block"
+                      >
+                        {discussion.username}
+                      </Link>
+                    ) : (
+                      <div className="font-medium text-neutral-900 dark:text-white truncate">
+                        {`User ${discussion.userId || "Anonymous"}`}
+                      </div>
+                    )}
+                    <div className="text-xs text-neutral-500">
+                      {discussion.createdAt
+                        ? new Date(discussion.createdAt).toLocaleString()
+                        : "Recently"}
+                    </div>
                   </div>
-                  <div className="text-xs text-neutral-500">
-                    {discussion.createdAt
-                      ? new Date(discussion.createdAt).toLocaleString()
-                      : "Recently"}
-                  </div>
                 </div>
+
+                {discussion.username && (
+                  <div className="shrink-0">
+                    <FollowButton targetUsername={discussion.username} size="xs" />
+                  </div>
+                )}
               </div>
               <p className="whitespace-pre-wrap">{discussion.content}</p>
 

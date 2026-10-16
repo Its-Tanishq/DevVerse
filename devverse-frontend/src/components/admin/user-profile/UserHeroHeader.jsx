@@ -1,14 +1,41 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { 
-  Shield, Star, Ban, CheckCircle2, Trash2, Mail, Calendar, Clock, User
+  Shield, Star, Ban, CheckCircle2, Trash2, Mail, Calendar, Clock, User, Users, UserCheck
 } from "lucide-react";
+import FollowButton from "@/components/common/FollowButton";
+import FollowListModal from "@/components/common/FollowListModal";
+import apiClient from "@/config/ApiClient";
 
 export default function UserHeroHeader({
   user,
   id,
   onUpdateUser
 }) {
+  const [followerCount, setFollowerCount] = useState(0);
+  const [followingCount, setFollowingCount] = useState(0);
+  const [followModalOpen, setFollowModalOpen] = useState(false);
+  const [followModalTab, setFollowModalTab] = useState("followers");
+
+  const targetUsername = user?.actualUsername || user?.username;
+
+  const refreshCounts = () => {
+    if (targetUsername) {
+      apiClient
+        .get(`/follow/${targetUsername}/followers`)
+        .then((res) => setFollowerCount(res.data?.data?.length || 0))
+        .catch(() => {});
+      apiClient
+        .get(`/follow/${targetUsername}/following`)
+        .then((res) => setFollowingCount(res.data?.data?.length || 0))
+        .catch(() => {});
+    }
+  };
+
+  useEffect(() => {
+    refreshCounts();
+  }, [targetUsername]);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 15 }}
@@ -18,7 +45,7 @@ export default function UserHeroHeader({
       {/* Subtle background glow */}
       <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-[#7c3aed]/10 via-pink-500/5 to-transparent rounded-full blur-3xl pointer-events-none -mr-20 -mt-20"></div>
 
-      <div className="relative z-10 space-y-6">
+      <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
         {/* User Profile & Identity Details */}
         <div className="flex flex-col sm:flex-row sm:items-center gap-5">
           <div className="relative">
@@ -41,7 +68,6 @@ export default function UserHeroHeader({
                 <User size={40} />
               </div>
             )}
-
           </div>
 
           <div className="space-y-2">
@@ -84,9 +110,61 @@ export default function UserHeroHeader({
                 Joined {new Date(user.createdAt || Date.now()).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
               </span>
             </div>
+
+            {/* Followers and Following counters */}
+            <div className="flex items-center gap-4 pt-1">
+              <button
+                type="button"
+                onClick={() => {
+                  setFollowModalTab("followers");
+                  setFollowModalOpen(true);
+                }}
+                className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+              >
+                <Users size={14} className="text-[#7c3aed]" />
+                <span className="font-bold text-foreground">{followerCount}</span>
+                <span>Followers</span>
+              </button>
+              <span className="text-border">•</span>
+              <button
+                type="button"
+                onClick={() => {
+                  setFollowModalTab("following");
+                  setFollowModalOpen(true);
+                }}
+                className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+              >
+                <UserCheck size={14} className="text-indigo-400" />
+                <span className="font-bold text-foreground">{followingCount}</span>
+                <span>Following</span>
+              </button>
+            </div>
           </div>
         </div>
+
+        {/* Action Controls */}
+        <div className="flex items-center gap-3">
+          <FollowButton
+            targetUsername={targetUsername}
+            size="md"
+            onFollowChange={(isNowFollowing) => {
+              setFollowerCount((prev) => isNowFollowing ? prev + 1 : Math.max(0, prev - 1));
+            }}
+          />
+        </div>
       </div>
+
+      {/* Follow List Modal */}
+      <FollowListModal
+        isOpen={followModalOpen}
+        onClose={() => {
+          setFollowModalOpen(false);
+          refreshCounts();
+        }}
+        username={targetUsername}
+        initialTab={followModalTab}
+      />
     </motion.div>
   );
 }
+

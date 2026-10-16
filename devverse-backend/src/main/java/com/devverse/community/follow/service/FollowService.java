@@ -94,4 +94,14 @@ public class FollowService {
                 
         return followRepo.existsByFollowerAndFollowing(follower, following);
     }
+
+    @Transactional(readOnly = true)
+    public java.util.Map<String, Long> getFollowCounts(String username) {
+        User user = userRepo.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with username: " + username));
+        java.util.Map<String, Long> counts = new java.util.HashMap<>();
+        counts.put("followersCount", followRepo.countByFollowing(user));
+        counts.put("followingCount", followRepo.countByFollower(user));
+        return counts;
+    }
 }

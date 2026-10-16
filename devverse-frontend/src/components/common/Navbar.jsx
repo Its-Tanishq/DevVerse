@@ -35,6 +35,7 @@ const Navbar = () => {
   const closeMobileMenu = () => setIsMobileMenuOpen(false);
 
   const isLoggedIn = useAuth((state) => state.authStatus);
+  const user = useAuth((state) => state.user);
   const logout = useAuth((state) => state.logout);
   const navigate = useNavigate();
 
@@ -135,19 +136,29 @@ const Navbar = () => {
                 </NavLink>
 
                 <div className="absolute right-0 top-full pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-                  <div className="bg-background border border-border shadow-lg rounded-xl overflow-hidden w-48 flex flex-col">
-                    {/* <NavLink
-                      to="/profile/settings"
-                      className="px-4 py-3 text-[14px] font-medium text-foreground hover:bg-accent transition-colors flex items-center gap-2"
+                  <div className="bg-card border border-border shadow-xl rounded-2xl overflow-hidden w-52 flex flex-col p-1.5 backdrop-blur-md">
+                    {(user?.actualUsername || user?.username) && (
+                      <NavLink
+                        to={`/user/${user.actualUsername || user.username}`}
+                        className="px-3.5 py-2.5 text-xs font-semibold text-foreground hover:bg-accent rounded-xl transition-colors flex items-center gap-2"
+                      >
+                        <User size={15} className="text-[#7c3aed]" />
+                        Profile
+                      </NavLink>
+                    )}
+                    <NavLink
+                      to="/profile"
+                      className="px-3.5 py-2.5 text-xs font-semibold text-foreground hover:bg-accent rounded-xl transition-colors flex items-center gap-2"
                     >
-                      <Settings size={16} />
-                      Settings
-                    </NavLink> */}
+                      <Settings size={15} className="text-muted-foreground" />
+                      Account Settings
+                    </NavLink>
+                    <div className="h-px bg-border my-1" />
                     <button
                       onClick={handleLogout}
-                      className="px-4 py-3 text-[14px] font-medium text-red-500 hover:bg-red-500/10 transition-colors flex items-center gap-2 w-full text-left border-t border-border"
+                      className="px-3.5 py-2.5 text-xs font-semibold text-red-500 hover:bg-red-500/10 rounded-xl transition-colors flex items-center gap-2 w-full text-left"
                     >
-                      <LogOut size={16} />
+                      <LogOut size={15} />
                       Logout
                     </button>
                   </div>
@@ -324,13 +335,23 @@ const Navbar = () => {
           <div className="flex flex-col gap-3 mt-4">
             {isLoggedIn ? (
               <>
+                {(user?.actualUsername || user?.username) && (
+                  <NavLink
+                    to={`/user/${user.actualUsername || user.username}`}
+                    onClick={closeMobileMenu}
+                    className="flex items-center justify-center gap-2 bg-[#7c3aed]/10 text-[#7c3aed] border border-[#7c3aed]/20 rounded-lg px-4 py-3 font-semibold text-xs transition-colors text-center"
+                  >
+                    <User size={16} />
+                    View Profile
+                  </NavLink>
+                )}
                 <NavLink
                   to="/profile"
                   onClick={closeMobileMenu}
                   className="flex items-center justify-center gap-2 bg-accent hover:bg-accent/80 rounded-lg px-4 py-3 font-medium text-foreground transition-colors text-center"
                 >
-                  <User size={20} />
-                  Profile
+                  <Settings size={18} />
+                  Account Settings
                 </NavLink>
                 {/* <NavLink
                   to="/profile/settings"

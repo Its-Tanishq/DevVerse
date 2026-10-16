@@ -9,6 +9,7 @@ import useAuth from "./store/AuthStore";
 import OAuthSuccess from "./pages/auth/OAuthSuccess";
 import Dashboard from "./pages/dashboard/Dashboard";
 import Profile from "./pages/profile/Profile";
+import PublicProfile from "./pages/profile/PublicProfile";
 import Problemset from "./pages/problem/Problemset";
 import ProblemInfo from "./pages/problem/ProblemInfo";
 import Layout from "./pages/admin/Layout";
@@ -54,6 +55,8 @@ function App() {
           <Route path="/oauth/success" element={<OAuthSuccess />} />
           <Route path="/problemset" element={<Problemset />} />
           <Route path="/problem/:identifier" element={<ProblemInfo />} />
+          <Route path="/user/:username" element={<PublicProfile />} />
+          <Route path="/profile/:username" element={<PublicProfile />} />
 
           {/* Admin Routes: Only accessible by ADMIN users */}
           <Route path="/admin" element={<Layout />}>

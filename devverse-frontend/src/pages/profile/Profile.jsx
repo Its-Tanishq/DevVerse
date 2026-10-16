@@ -19,10 +19,13 @@ import {
   ShieldCheck,
   User,
   Loader2,
+  Users,
+  UserCheck,
 } from "lucide-react";
 import useAuth from "@/store/AuthStore";
 import { supabase } from "@/config/SupabaseClient";
 import apiClient from "@/config/ApiClient";
+import FollowListModal from "@/components/common/FollowListModal";
 import toast from "react-hot-toast";
 import { getPasswordStrength, getStrengthColors } from "@/utils/passwordUtils";
 
@@ -48,6 +51,11 @@ const Profile = () => {
 
   const [connectingPlatform, setConnectingPlatform] = useState(null);
   const [connectionUsername, setConnectionUsername] = useState("");
+
+  const [followerCount, setFollowerCount] = useState(0);
+  const [followingCount, setFollowingCount] = useState(0);
+  const [followModalOpen, setFollowModalOpen] = useState(false);
+  const [followModalTab, setFollowModalTab] = useState("followers");
 
   const handleSaveConnection = async (platform) => {
     if (!connectionUsername.trim()) {
@@ -134,6 +142,21 @@ const Profile = () => {
   useEffect(() => {
     setConnectionUsername("");
   }, [connectingPlatform]);
+
+  useEffect(() => {
+    const currentUsername = user?.actualUsername || user?.username;
+    if (currentUsername) {
+      apiClient
+        .get(`/follow/${currentUsername}/followers`)
+        .then((res) => setFollowerCount(res.data?.data?.length || 0))
+        .catch(() => {});
+
+      apiClient
+        .get(`/follow/${currentUsername}/following`)
+        .then((res) => setFollowingCount(res.data?.data?.length || 0))
+        .catch(() => {});
+    }
+  }, [user]);
 
   const handleImageChange = async (e) => {
     const file = e.target.files[0];
@@ -888,6 +911,50 @@ const Profile = () => {
                     </p>
                   </div>
                 </div>
+
+                <div className="col-span-2 border-t border-border"></div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFollowModalTab("followers");
+                    setFollowModalOpen(true);
+                  }}
+                  className="flex items-center gap-3 text-left p-2 -m-2 rounded-xl hover:bg-accent/50 transition-colors cursor-pointer group"
+                >
+                  <div className="p-2 bg-[#7c3aed]/10 text-[#7c3aed] rounded-full group-hover:scale-105 transition-transform">
+                    <Users size={18} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-foreground">
+                      {followerCount}
+                    </p>
+                    <p className="text-xs text-muted-foreground group-hover:text-[#7c3aed] transition-colors">
+                      Followers
+                    </p>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFollowModalTab("following");
+                    setFollowModalOpen(true);
+                  }}
+                  className="flex items-center gap-3 text-left p-2 -m-2 rounded-xl hover:bg-accent/50 transition-colors cursor-pointer group"
+                >
+                  <div className="p-2 bg-indigo-500/10 text-indigo-500 rounded-full group-hover:scale-105 transition-transform">
+                    <UserCheck size={18} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-foreground">
+                      {followingCount}
+                    </p>
+                    <p className="text-xs text-muted-foreground group-hover:text-indigo-500 transition-colors">
+                      Following
+                    </p>
+                  </div>
+                </button>
               </div>
             </div>
 
@@ -1060,6 +1127,27 @@ const Profile = () => {
           </div>
         </div>
       </div>
+
+      {/* Follow List Modal */}
+      <FollowListModal
+        isOpen={followModalOpen}
+        onClose={() => {
+          setFollowModalOpen(false);
+          const currentUsername = user?.actualUsername || user?.username;
+          if (currentUsername) {
+            apiClient
+              .get(`/follow/${currentUsername}/followers`)
+              .then((res) => setFollowerCount(res.data?.data?.length || 0))
+              .catch(() => {});
+            apiClient
+              .get(`/follow/${currentUsername}/following`)
+              .then((res) => setFollowingCount(res.data?.data?.length || 0))
+              .catch(() => {});
+          }
+        }}
+        username={user?.actualUsername || user?.username}
+        initialTab={followModalTab}
+      />
     </div>
   );
 };

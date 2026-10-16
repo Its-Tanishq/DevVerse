@@ -25,7 +25,11 @@ public class AppConstants {
             "/api/problem/boilerplate/**",
             "/api/problem/testcase/problem/*/public",
             "/api/follow/*/followers",
-            "/api/follow/*/following"
+            "/api/follow/*/following",
+            "/api/follow/*/counts",
+            "/api/follow/*/status",
+            "/api/user/username/*",
+            "/api/problem/submission/user/*"
     };
 
 }

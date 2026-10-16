@@ -16,7 +16,7 @@ import {
 
 const Dashboard = () => {
   const user = useAuth((state) => state.user);
-  const displayName = user.actualUsername;
+  const displayName = user?.actualUsername || user?.username || "Developer";
 
   return (
     <div className="w-[90vw] max-w-7xl mx-auto pt-8 pb-12">

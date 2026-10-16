@@ -41,9 +41,17 @@ public class FollowController {
         return ResponseEntity.ok(new ApiResponse<>(true, "Following retrieved", followService.getFollowing(username), Instant.now()));
     }
 
+    @GetMapping("/{username}/counts")
+    public ResponseEntity<ApiResponse<?>> getFollowCounts(@PathVariable String username) {
+        return ResponseEntity.ok(new ApiResponse<>(true, "Follow counts retrieved", followService.getFollowCounts(username), Instant.now()));
+    }
+
     @GetMapping("/{username}/status")
     public ResponseEntity<ApiResponse<?>> getFollowStatus(@PathVariable String username) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equalsIgnoreCase(auth.getName())) {
+            return ResponseEntity.ok(new ApiResponse<>(true, "Follow status retrieved", false, Instant.now()));
+        }
         boolean isFollowing = followService.isFollowing(auth.getName(), username);
         return ResponseEntity.ok(new ApiResponse<>(true, "Follow status retrieved", isFollowing, Instant.now()));
     }

@@ -37,7 +37,6 @@ public class UserService {
     @Transactional
     public UserDTO createUser(UserDTO userDTO) {
 
-
         if (userRepo.findByEmail(userDTO.getEmail()).isPresent()) {
             throw new DuplicateResourceException("Email is already registered");
         }
@@ -61,13 +60,12 @@ public class UserService {
                 "USER",
                 savedUser.getID(),
                 "INFO",
-                "#10b981"
-        );
+                "#10b981");
 
         return modelMapper.map(savedUser, UserDTO.class);
     }
 
-    public UserDTO getUserByEmail(String email)  {
+    public UserDTO getUserByEmail(String email) {
         User user = userRepo.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
         return modelMapper.map(user, UserDTO.class);
@@ -100,8 +98,10 @@ public class UserService {
             }
         }
 
-        if (userDTO.getProfilePic() != null) user.setProfilePic(userDTO.getProfilePic());
-        if (userDTO.getBio() != null) user.setBio(userDTO.getBio());
+        if (userDTO.getProfilePic() != null)
+            user.setProfilePic(userDTO.getProfilePic());
+        if (userDTO.getBio() != null)
+            user.setBio(userDTO.getBio());
 
         User updatedUser = userRepo.save(user);
         return modelMapper.map(updatedUser, UserDTO.class);
@@ -110,11 +110,11 @@ public class UserService {
     public void changePassword(String email, ChangePasswordRequest request) {
         User user = userRepo.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
-        
+
         if (!passwordEncoder.matches(request.oldPassword(), user.getPassword())) {
             throw new BadCredentialsException("Invalid old password");
         }
-        
+
         user.setPassword(passwordEncoder.encode(request.newPassword()));
         userRepo.save(user);
     }
@@ -122,7 +122,7 @@ public class UserService {
     public void resetPassword(String email, String newPassword) {
         User user = userRepo.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
-        
+
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepo.save(user);
     }
@@ -131,18 +131,18 @@ public class UserService {
     public void deleteUser(Long id, String reason) {
         User user = userRepo.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
-        
-        // Delete related refresh tokens before deleting the user to avoid foreign key constraint violations
+
+        // Delete related refresh tokens before deleting the user to avoid foreign key
+        // constraint violations
         refreshTokenRepo.deleteByUser(user);
-        
+
         activityLogService.logActivity(
                 "User deleted: " + user.getActualUsername() + " - Reason: " + reason,
                 "USER",
                 user.getID(),
                 "CRITICAL",
-                "#ef4444"
-        );
-        
+                "#ef4444");
+
         userRepo.delete(user);
     }
 
@@ -152,14 +152,14 @@ public class UserService {
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
         user.setIsEnabled(!user.getIsEnabled());
         userRepo.save(user);
-        
+
         activityLogService.logActivity(
-                "User " + (user.getIsEnabled() ? "unbanned" : "banned") + ": " + user.getActualUsername() + " - Reason: " + reason,
+                "User " + (user.getIsEnabled() ? "unbanned" : "banned") + ": " + user.getActualUsername()
+                        + " - Reason: " + reason,
                 "USER",
                 user.getID(),
                 "WARNING",
-                user.getIsEnabled() ? "#10b981" : "#ef4444"
-        );
+                user.getIsEnabled() ? "#10b981" : "#ef4444");
     }
 
     @Transactional
@@ -168,27 +168,26 @@ public class UserService {
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
         user.setIsPremium(!user.getIsPremium());
         userRepo.save(user);
-        
+
         activityLogService.logActivity(
-                "User premium status changed to " + user.getIsPremium() + ": " + user.getActualUsername() + " - Reason: " + reason,
+                "User premium status changed to " + user.getIsPremium() + ": " + user.getActualUsername()
+                        + " - Reason: " + reason,
                 "USER",
                 user.getID(),
                 "INFO",
-                "#f59e0b"
-        );
+                "#f59e0b");
     }
 
     public PageResponse<UserDTO> getAllUsers(int page, int size) {
         Page<UserDTO> userPage = userRepo.findAll(PageRequest.of(page, size))
                 .map(u -> modelMapper.map(u, UserDTO.class));
-        
+
         return new PageResponse<>(
                 userPage.getContent(),
                 userPage.getNumber(),
                 userPage.getTotalPages(),
                 userPage.getTotalElements(),
-                userPage.isLast()
-        );
+                userPage.isLast());
     }
 
     public UserDTO registerUser(UserDTO userDTO) {
