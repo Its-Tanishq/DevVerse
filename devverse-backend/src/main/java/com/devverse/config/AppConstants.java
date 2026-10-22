@@ -29,7 +29,9 @@ public class AppConstants {
             "/api/follow/*/counts",
             "/api/follow/*/status",
             "/api/user/username/*",
-            "/api/problem/submission/user/*"
+            "/api/problem/submission/user/*",
+            "/api/doubts",
+            "/api/doubts/**"
     };
 
 }

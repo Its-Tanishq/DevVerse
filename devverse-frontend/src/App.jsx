@@ -22,6 +22,9 @@ import DailyChallengesAdmin from "./pages/admin/DailyChallenges";
 import Tags from "./pages/admin/Tags";
 import CreateProblem from "./pages/admin/CreateProblem";
 import EditProblem from "./pages/admin/EditProblem";
+import DoubtForum from "./pages/doubt/DoubtForum";
+import DoubtDetail from "./pages/doubt/DoubtDetail";
+import AskDoubt from "./pages/doubt/AskDoubt";
 
 function UserLayout() {
   const isLoggedIn = useAuth((state) => state.authStatus);
@@ -57,6 +60,14 @@ function App() {
           <Route path="/problem/:identifier" element={<ProblemInfo />} />
           <Route path="/user/:username" element={<PublicProfile />} />
           <Route path="/profile/:username" element={<PublicProfile />} />
+
+          {/* Doubt Forum / Community Routes */}
+          <Route path="/community" element={<DoubtForum />} />
+          <Route path="/community/:id" element={<DoubtDetail />} />
+          <Route path="/community/ask" element={<AskDoubt />} />
+          <Route path="/doubts" element={<DoubtForum />} />
+          <Route path="/doubts/:id" element={<DoubtDetail />} />
+          <Route path="/doubts/ask" element={<AskDoubt />} />
 
           {/* Admin Routes: Only accessible by ADMIN users */}
           <Route path="/admin" element={<Layout />}>
