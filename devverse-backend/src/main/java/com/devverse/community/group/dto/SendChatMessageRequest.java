@@ -1,0 +1,17 @@
+package com.devverse.community.group.dto;
+
+import jakarta.validation.constraints.NotBlank;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class SendChatMessageRequest {
+
+    @NotBlank(message = "Message content cannot be empty")
+    private String content;
+}

@@ -31,7 +31,9 @@ public class AppConstants {
             "/api/user/username/*",
             "/api/problem/submission/user/*",
             "/api/doubts",
-            "/api/doubts/**"
+            "/api/doubts/**",
+            "/api/groups",
+            "/api/groups/*"
     };
 
 }
