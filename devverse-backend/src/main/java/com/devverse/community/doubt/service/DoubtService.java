@@ -73,7 +73,7 @@ public class DoubtService {
     }
 
     @Transactional
-    public DoubtResponseDTO markDoubtAsSolved(Long id) {
+    public DoubtResponseDTO markDoubtAsSolved(Long id, Long commentId) {
         Doubt doubt = doubtRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Doubt not found"));
         
@@ -82,7 +82,35 @@ public class DoubtService {
             throw new RuntimeException("Only the author can mark the doubt as solved");
         }
 
-        doubt.setSolved(true);
+        if (commentId != null) {
+            DoubtComment comment = doubtCommentRepository.findById(commentId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Comment not found"));
+            if (!comment.getDoubt().getId().equals(id)) {
+                throw new RuntimeException("Comment does not belong to this doubt");
+            }
+
+            boolean isCurrentlySolution = comment.isSolution();
+
+            // Clear all solution flags on this doubt
+            List<DoubtComment> allComments = doubtCommentRepository.findByDoubtId(id);
+            for (DoubtComment c : allComments) {
+                c.setSolution(false);
+            }
+
+            if (!isCurrentlySolution) {
+                comment.setSolution(true);
+                doubt.setAcceptedCommentId(commentId);
+                doubt.setSolved(true);
+            } else {
+                // Toggle off
+                doubt.setAcceptedCommentId(null);
+                doubt.setSolved(false);
+            }
+            doubtCommentRepository.saveAll(allComments);
+        } else {
+            doubt.setSolved(true);
+        }
+
         return mapToDoubtResponse(doubtRepository.save(doubt));
     }
 
@@ -153,6 +181,7 @@ public class DoubtService {
 
     // Mappers
     private DoubtResponseDTO mapToDoubtResponse(Doubt doubt) {
+        int count = (int) doubtCommentRepository.countByDoubtId(doubt.getId());
         return DoubtResponseDTO.builder()
                 .id(doubt.getId())
                 .title(doubt.getTitle())
@@ -160,6 +189,8 @@ public class DoubtService {
                 .author(mapToUserDTO(doubt.getAuthor()))
                 .tags(doubt.getTags())
                 .isSolved(doubt.isSolved())
+                .acceptedCommentId(doubt.getAcceptedCommentId())
+                .commentCount(count)
                 .createdAt(doubt.getCreatedAt())
                 .updatedAt(doubt.getUpdatedAt())
                 .build();
@@ -182,6 +213,7 @@ public class DoubtService {
                 .replies(replies)
                 .upvotes(upvotes)
                 .downvotes(downvotes)
+                .isSolution(comment.isSolution())
                 .createdAt(comment.getCreatedAt())
                 .updatedAt(comment.getUpdatedAt())
                 .build();

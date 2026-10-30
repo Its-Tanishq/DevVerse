@@ -15,6 +15,8 @@ public class DoubtResponseDTO {
     private UserDTO author;
     private List<String> tags;
     private boolean isSolved;
+    private Long acceptedCommentId;
+    private int commentCount;
     private Instant createdAt;
     private Instant updatedAt;
 }

@@ -42,6 +42,9 @@ public class Doubt {
     @Column(nullable = false)
     private boolean isSolved = false;
 
+    @Column(name = "accepted_comment_id")
+    private Long acceptedCommentId;
+
     @OneToMany(mappedBy = "doubt", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     @ToString.Exclude

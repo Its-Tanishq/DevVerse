@@ -341,17 +341,30 @@ public class StudyGroupService {
         boolean hasPendingRequest = false;
 
         if (currentUser != null) {
+            isCreator = group.getCreatedBy() != null &&
+                    group.getCreatedBy().getID() != null &&
+                    group.getCreatedBy().getID().equals(currentUser.getID());
+
             Optional<GroupMember> memberOpt = groupMemberRepo.findByGroupAndUser(group, currentUser);
             if (memberOpt.isPresent()) {
                 isMember = true;
                 isAdmin = memberOpt.get().getRole() == GroupRole.ADMIN;
             }
-            isCreator = group.getCreatedBy().getID().equals(currentUser.getID());
+
+            // Creator is always a member and admin of their own study circle
+            if (isCreator) {
+                isMember = true;
+                isAdmin = true;
+            }
+
             hasPendingRequest = joinRequestRepo.existsByGroupAndUserAndStatus(group, currentUser, JoinRequestStatus.PENDING);
         }
 
         // Only reveal invite code to members or admins
-        String inviteCode = isMember ? group.getInviteCode() : null;
+        String inviteCode = (isMember || isCreator || isAdmin) ? group.getInviteCode() : null;
+
+        Long createdById = group.getCreatedBy() != null ? group.getCreatedBy().getID() : null;
+        String createdByUsername = group.getCreatedBy() != null ? group.getCreatedBy().getActualUsername() : null;
 
         return GroupResponseDTO.builder()
                 .id(group.getId())
@@ -365,8 +378,8 @@ public class StudyGroupService {
                 .isAdmin(isAdmin)
                 .isCreator(isCreator)
                 .hasPendingRequest(hasPendingRequest)
-                .createdById(group.getCreatedBy().getID())
-                .createdByUsername(group.getCreatedBy().getActualUsername())
+                .createdById(createdById)
+                .createdByUsername(createdByUsername)
                 .createdAt(group.getCreatedAt())
                 .updatedAt(group.getUpdatedAt())
                 .build();

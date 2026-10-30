@@ -51,6 +51,10 @@ public class DoubtComment {
     @ToString.Exclude
     private List<CommentVote> votes = new ArrayList<>();
 
+    @Builder.Default
+    @Column(nullable = false)
+    private boolean isSolution = false;
+
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
 

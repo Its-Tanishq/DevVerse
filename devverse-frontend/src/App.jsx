@@ -25,6 +25,9 @@ import EditProblem from "./pages/admin/EditProblem";
 import DoubtForum from "./pages/doubt/DoubtForum";
 import DoubtDetail from "./pages/doubt/DoubtDetail";
 import AskDoubt from "./pages/doubt/AskDoubt";
+import GroupsList from "./pages/group/GroupsList";
+import GroupDetail from "./pages/group/GroupDetail";
+import JoinGroupByCode from "./pages/group/JoinGroupByCode";
 
 function UserLayout() {
   const isLoggedIn = useAuth((state) => state.authStatus);
@@ -68,6 +71,11 @@ function App() {
           <Route path="/doubts" element={<DoubtForum />} />
           <Route path="/doubts/:id" element={<DoubtDetail />} />
           <Route path="/doubts/ask" element={<AskDoubt />} />
+
+          {/* Study Group Routes */}
+          <Route path="/groups" element={<Navigate to="/community?tab=groups" replace />} />
+          <Route path="/groups/:groupId" element={<GroupDetail />} />
+          <Route path="/groups/join/:inviteCode" element={<JoinGroupByCode />} />
 
           {/* Admin Routes: Only accessible by ADMIN users */}
           <Route path="/admin" element={<Layout />}>

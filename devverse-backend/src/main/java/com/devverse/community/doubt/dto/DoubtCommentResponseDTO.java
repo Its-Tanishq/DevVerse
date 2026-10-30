@@ -17,6 +17,7 @@ public class DoubtCommentResponseDTO {
     private List<DoubtCommentResponseDTO> replies;
     private int upvotes;
     private int downvotes;
+    private boolean isSolution;
     private Instant createdAt;
     private Instant updatedAt;
 }

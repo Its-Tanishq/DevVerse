@@ -10,4 +10,10 @@ import java.util.List;
 public interface DoubtCommentRepo extends JpaRepository<DoubtComment, Long> {
     // Fetch top-level comments for a doubt (where parentComment is null)
     List<DoubtComment> findByDoubtIdAndParentCommentIsNullOrderByCreatedAtDesc(Long doubtId);
+
+    // Count total comments and replies for a doubt
+    long countByDoubtId(Long doubtId);
+
+    // Fetch all comments and replies for a doubt
+    List<DoubtComment> findByDoubtId(Long doubtId);
 }

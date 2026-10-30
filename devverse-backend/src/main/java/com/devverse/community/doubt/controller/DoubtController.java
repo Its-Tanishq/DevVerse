@@ -49,8 +49,10 @@ public class DoubtController {
     }
 
     @PatchMapping("/{doubtId}/solve")
-    public ResponseEntity<DoubtResponseDTO> markDoubtAsSolved(@PathVariable Long doubtId) {
-        return ResponseEntity.ok(doubtService.markDoubtAsSolved(doubtId));
+    public ResponseEntity<DoubtResponseDTO> markDoubtAsSolved(
+            @PathVariable Long doubtId,
+            @RequestParam(required = false) Long commentId) {
+        return ResponseEntity.ok(doubtService.markDoubtAsSolved(doubtId, commentId));
     }
 
     // Comments
