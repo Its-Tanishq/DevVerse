@@ -4,15 +4,15 @@ import useAuth from "../../store/AuthStore";
 import apiClient from "../../config/ApiClient";
 import {
   LayoutDashboard,
-  BarChart2,
+  // BarChart2,
   Users,
   Code,
   Building2,
   Tag,
   CalendarClock,
-  Settings,
-  Shield,
-  Activity,
+  // Settings,
+  // Shield,
+  // Activity,
   ChevronDown,
 } from "lucide-react";
 
@@ -59,7 +59,8 @@ export default function Layout() {
       title: "MAIN",
       items: [
         { name: "Dashboard", path: "/admin", icon: LayoutDashboard, end: true },
-        { name: "Analytics", path: "/admin/analytics", icon: BarChart2 },
+        // Incomplete route commented out:
+        // { name: "Analytics", path: "/admin/analytics", icon: BarChart2 },
       ]
     },
     {
@@ -72,14 +73,15 @@ export default function Layout() {
         { name: "Daily Challenges", path: "/admin/daily-challenges", icon: CalendarClock, badge: formatNumber(stats.totalDailyChallenges), badgeBg: "bg-[#ef4444]" },
       ]
     },
-    {
-      title: "SYSTEM",
-      items: [
-        { name: "Settings", path: "/admin/settings", icon: Settings },
-        { name: "Moderation", path: "/admin/moderation", icon: Shield },
-        { name: "Activity Logs", path: "/admin/activity-logs", icon: Activity },
-      ]
-    }
+    // Incomplete SYSTEM section commented out (Settings, Moderation, Activity Logs have no backend/pages)
+    // {
+    //   title: "SYSTEM",
+    //   items: [
+    //     { name: "Settings", path: "/admin/settings", icon: Settings },
+    //     { name: "Moderation", path: "/admin/moderation", icon: Shield },
+    //     { name: "Activity Logs", path: "/admin/activity-logs", icon: Activity },
+    //   ]
+    // }
   ];
 
   return (

@@ -371,7 +371,8 @@ const DoubtForum = () => {
 
           {/* Navigation Tabs */}
           <div className="flex items-center gap-1.5 -mb-[1px]">
-            <button
+            {/* Incomplete global feed tab commented out */}
+            {/* <button
               type="button"
               onClick={() => handleTabChange("feed")}
               className={`px-4 py-1.5 text-xs sm:text-sm font-medium border transition-colors cursor-pointer rounded-t-md ${
@@ -381,7 +382,7 @@ const DoubtForum = () => {
               }`}
             >
               Feed
-            </button>
+            </button> */}
             <button
               type="button"
               onClick={() => handleTabChange("forum")}

@@ -134,16 +134,12 @@ export default function Dashboard() {
     },
   ];
 
-
-
   const systemStats = [
     { label: "API Requests", sub: "in 24h", value: "2.3M", icon: Zap },
     { label: "Avg Response", sub: "performance", value: "145ms", icon: Activity },
     { label: "Error Rate", sub: "very low", value: "0.02%", icon: AlertCircle },
     { label: "Uptime", sub: "this month", value: "99.98%", icon: CheckCircle2 },
   ];
-
-
 
   if (loading) {
     return (
@@ -267,6 +263,7 @@ export default function Dashboard() {
                 className="bg-[#111111] border border-white/10 rounded-lg pl-9 pr-4 py-2 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:border-[#7c3aed]"
               />
             </div>
+            {/* Export button */}
             <button className="flex items-center gap-2 bg-[#111111] hover:bg-[#1a1a1a] border border-white/10 text-gray-300 px-4 py-2 rounded-lg text-sm transition-colors">
               <Download size={14} />
               <span>Export</span>
@@ -324,7 +321,7 @@ export default function Dashboard() {
                     </td>
                     <td className="px-5 py-4 text-right">
                       <div className="flex justify-end gap-2">
-                        <Link to={`/admin/user/${u.id}`} className="w-7 h-7 rounded bg-[#111111] hover:bg-[#222] border border-white/10 flex items-center justify-center text-gray-400 transition-colors">
+                        <Link to={`/admin/users/${u.id}`} className="w-7 h-7 rounded bg-[#111111] hover:bg-[#222] border border-white/10 flex items-center justify-center text-gray-400 transition-colors">
                           <Edit2 size={12} />
                         </Link>
                       </div>

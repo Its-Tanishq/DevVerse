@@ -71,6 +71,7 @@ function App() {
           <Route path="/doubts" element={<DoubtForum />} />
           <Route path="/doubts/:id" element={<DoubtDetail />} />
           <Route path="/doubts/ask" element={<AskDoubt />} />
+          <Route path="/discussions" element={<Navigate to="/community" replace />} />
 
           {/* Study Group Routes */}
           <Route path="/groups" element={<Navigate to="/community?tab=groups" replace />} />
@@ -82,6 +83,7 @@ function App() {
             <Route index element={<DashboardAdmin />} />
             <Route path="users" element={<Users />} />
             <Route path="users/:id" element={<UserProfile />} />
+            <Route path="user/:id" element={<UserProfile />} />
             <Route path="problems" element={<Problems />} />
             <Route path="problems/create" element={<CreateProblem />} />
             <Route path="problems/edit/:id" element={<EditProblem />} />
@@ -97,6 +99,9 @@ function App() {
               <Route index element={<Dashboard />} />
             </Route>
           </Route>
+
+          {/* Fallback Catch-All Route for non-existent / incomplete pages */}
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>
     </BrowserRouter>

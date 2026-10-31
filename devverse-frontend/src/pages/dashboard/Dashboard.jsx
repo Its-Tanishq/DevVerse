@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router";
 import useAuth from "@/store/AuthStore";
 import {
   Code,
@@ -158,10 +159,10 @@ const Dashboard = () => {
                 </div>
 
                 <div className="flex flex-col items-start md:items-end gap-2 w-full">
-                  <button className="bg-[#7c3aed] hover:bg-[#6d28d9] text-white w-full md:w-auto px-6 py-2.5 rounded-lg font-medium transition-colors flex items-center justify-center gap-2">
+                  <Link to="/problemset" className="bg-[#7c3aed] hover:bg-[#6d28d9] text-white w-full md:w-auto px-6 py-2.5 rounded-lg font-medium transition-colors flex items-center justify-center gap-2">
                     <Code size={18} />
                     <span>Solve Now</span>
-                  </button>
+                  </Link>
                   <div className="flex items-center gap-1.5 text-muted-foreground text-xs mt-1">
                     <Users size={14} />
                     <span>12,481 solved today</span>
@@ -253,12 +254,13 @@ const Dashboard = () => {
               <h2 className="text-xl font-bold text-foreground">
                 Recent Submissions
               </h2>
-              <a
+              {/* Incomplete link commented out */}
+              {/* <a
                 href="#"
                 className="text-[#7c3aed] text-sm hover:underline font-medium"
               >
                 View all
-              </a>
+              </a> */}
             </div>
             <div className="flex flex-col">
               <div className="px-6 py-4 flex items-center justify-between border-b border-border hover:bg-accent/30 transition-colors">
@@ -415,7 +417,8 @@ const Dashboard = () => {
         </div>
 
         <div className="w-full lg:w-80 shrink-0 space-y-6">
-          <div className="bg-transparent rounded-xl flex flex-col">
+          {/* Incomplete Quick Actions commented out */}
+          {/* <div className="bg-transparent rounded-xl flex flex-col">
             <h2 className="text-xl font-bold text-foreground mb-4">
               Quick Actions
             </h2>
@@ -480,19 +483,20 @@ const Dashboard = () => {
                 />
               </button>
             </div>
-          </div>
+          </div> */}
 
           <div className="bg-card border border-border rounded-xl p-6 flex flex-col">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-lg font-bold text-foreground">
                 Skill Breakdown
               </h2>
-              <a
+              {/* Incomplete link commented out */}
+              {/* <a
                 href="#"
                 className="text-[#7c3aed] text-xs font-medium hover:underline"
               >
                 Full report
-              </a>
+              </a> */}
             </div>
             <div className="flex flex-col gap-5">
               <div className="flex flex-col gap-2">
@@ -577,12 +581,13 @@ const Dashboard = () => {
               <h2 className="text-lg font-bold text-foreground">
                 Global Leaderboard
               </h2>
-              <a
+              {/* Incomplete link commented out */}
+              {/* <a
                 href="#"
                 className="text-[#7c3aed] text-xs font-medium hover:underline"
               >
                 Full rankings
-              </a>
+              </a> */}
             </div>
 
             <div className="flex flex-col">

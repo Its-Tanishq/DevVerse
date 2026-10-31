@@ -20,7 +20,7 @@ import ProblemHintsTab from "../../components/problems/probleminfo/ProblemHintsT
 import ProblemDiscussionTab from "../../components/problems/probleminfo/ProblemDiscussionTab";
 import ProblemSubmissionsTab from "../../components/problems/probleminfo/ProblemSubmissionsTab";
 import ProblemNotesTab from "../../components/problems/probleminfo/ProblemNotesTab";
-import ProblemEditorialTab from "../../components/problems/probleminfo/ProblemEditorialTab";
+// import ProblemEditorialTab from "../../components/problems/probleminfo/ProblemEditorialTab";
 import ProblemCodeEditor from "../../components/problems/probleminfo/ProblemCodeEditor";
 
 const ProblemInfo = () => {
@@ -162,7 +162,8 @@ const ProblemInfo = () => {
               <MessageSquare className="w-4 h-4" />
               <span className="text-sm font-medium">Discussion</span>
             </button>
-            <button
+            {/* Incomplete / Placeholder Editorial tab commented out */}
+            {/* <button
               onClick={() => setLeftTab("editorial")}
               className={`flex items-center gap-2 px-4 py-2 transition-colors ${
                 leftTab === "editorial"
@@ -173,7 +174,7 @@ const ProblemInfo = () => {
               <BookOpen className="w-4 h-4" />
               <span className="text-sm font-medium">Editorial</span>
               <Lock className="w-3 h-3 text-amber-500" />
-            </button>
+            </button> */}
             <button
               onClick={() => setLeftTab("submissions")}
               className={`flex items-center gap-2 px-4 py-2 transition-colors ${
@@ -211,7 +212,8 @@ const ProblemInfo = () => {
             <ProblemDiscussionTab problemId={problemId} />
           )}
 
-          {leftTab === "editorial" && <ProblemEditorialTab />}
+          {/* Incomplete / Placeholder Editorial tab content commented out */}
+          {/* {leftTab === "editorial" && <ProblemEditorialTab />} */}
 
           {leftTab === "submissions" && (
             <ProblemSubmissionsTab problemId={problemId} />

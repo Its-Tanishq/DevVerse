@@ -73,18 +73,19 @@ const Navbar = () => {
           <NavLink to="/problemset" className="nav-link hover:text-foreground">
             Problems
           </NavLink>
-          <NavLink to="/contests" className="nav-link hover:text-foreground">
+          {/* Incomplete / Missing pages commented out */}
+          {/* <NavLink to="/contests" className="nav-link hover:text-foreground">
             Contests
           </NavLink>
           <NavLink to="/learn" className="nav-link hover:text-foreground">
             Learn
-          </NavLink>
+          </NavLink> */}
           <NavLink to="/community" className="nav-link hover:text-foreground">
             Community
           </NavLink>
-          <NavLink to="/rankings" className="nav-link hover:text-foreground">
+          {/* <NavLink to="/rankings" className="nav-link hover:text-foreground">
             Rankings
-          </NavLink>
+          </NavLink> */}
         </div>
 
         <div className="hidden md:flex gap-3 items-center">
@@ -304,7 +305,8 @@ const Navbar = () => {
           >
             Problems
           </NavLink>
-          <NavLink
+          {/* Incomplete / Missing pages commented out */}
+          {/* <NavLink
             to="/contests"
             onClick={closeMobileMenu}
             className="font-medium text-foreground py-2 border-b border-border"
@@ -317,7 +319,7 @@ const Navbar = () => {
             className="font-medium text-foreground py-2 border-b border-border"
           >
             Learn
-          </NavLink>
+          </NavLink> */}
           <NavLink
             to="/community"
             onClick={closeMobileMenu}
@@ -325,13 +327,13 @@ const Navbar = () => {
           >
             Community
           </NavLink>
-          <NavLink
+          {/* <NavLink
             to="/rankings"
             onClick={closeMobileMenu}
             className="font-medium text-foreground py-2 border-b border-border"
           >
             Rankings
-          </NavLink>
+          </NavLink> */}
           <div className="flex flex-col gap-3 mt-4">
             {isLoggedIn ? (
               <>

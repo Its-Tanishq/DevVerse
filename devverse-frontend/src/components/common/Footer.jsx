@@ -101,7 +101,8 @@ const Footer = () => {
                   Problems
                 </NavLink>
               </li>
-              <li>
+              {/* Incomplete / Unimplemented platform pages commented out */}
+              {/* <li>
                 <NavLink
                   to="/contests"
                   className="nav-link text-muted-foreground text-sm hover:text-foreground"
@@ -132,7 +133,7 @@ const Footer = () => {
                 >
                   AI Tools
                 </NavLink>
-              </li>
+              </li> */}
             </ul>
           </div>
 
@@ -141,13 +142,14 @@ const Footer = () => {
             <ul className="space-y-3">
               <li>
                 <NavLink
-                  to="/discussions"
+                  to="/community"
                   className="nav-link text-muted-foreground text-sm hover:text-foreground"
                 >
-                  Discussions
+                  Community & Doubts
                 </NavLink>
               </li>
-              <li>
+              {/* Incomplete / Unimplemented community pages commented out */}
+              {/* <li>
                 <NavLink
                   to="/rooms"
                   className="nav-link text-muted-foreground text-sm hover:text-foreground"
@@ -178,14 +180,15 @@ const Footer = () => {
                 >
                   Blog
                 </NavLink>
-              </li>
+              </li> */}
             </ul>
           </div>
 
           <div className="col-span-2 md:col-span-1">
             <h4 className="font-semibold text-foreground mb-4">Company</h4>
             <ul className="space-y-3">
-              <li>
+              {/* Incomplete / Placeholder company pages commented out */}
+              {/* <li>
                 <NavLink
                   to="/about"
                   className="nav-link text-muted-foreground text-sm hover:text-foreground"
@@ -224,6 +227,9 @@ const Footer = () => {
                 >
                   Terms
                 </NavLink>
+              </li> */}
+              <li className="text-muted-foreground text-xs leading-relaxed">
+                DevVerse Platform
               </li>
             </ul>
           </div>
@@ -231,7 +237,7 @@ const Footer = () => {
 
         <div className="pt-8 border-t border-border flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-muted-foreground text-xs">
-            © 2025 DevVerse, Inc. All rights reserved.
+            © 2026 DevVerse, Inc. All rights reserved.
           </p>
           <p className="text-muted-foreground text-xs">
             Made for developers, by devverse.
